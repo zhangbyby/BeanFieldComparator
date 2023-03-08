@@ -14,14 +14,17 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-        比较两个Bean的字段差异
+<pre>
+比较两个Bean的字段差异
 
-        已实现：
-        1. 单击字段选择联动
-        2. 双击跳转源码位置
+已实现：
+1. 单击字段选择联动
+2. 双击跳转源码位置
 
-        待实现：
-        1. 在方法调用（BeanUtils.copyProperties）代码上快捷键打开窗口
+待实现：
+1. source端只展示可读状态字段，target端之战时可写状态字段
+2. 在方法调用（BeanUtils.copyProperties）代码处快捷键打开窗口
+</pre>
     ]]></description>
 
     <!-- Product and plugin compatibility requirements.
