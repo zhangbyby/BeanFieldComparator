@@ -38,6 +38,7 @@ public class BFCMainUI {
     private JPanel filterMenuPanel;
     private JCheckBox hideStatic;
     private JCheckBox hideFinal;
+    private JCheckBox autoHide;
 
     /**
      * customer
@@ -48,7 +49,6 @@ public class BFCMainUI {
     private JButton targetClassChooseButton;
     private JList<PsiField> sourceFields;
     private JList<PsiField> targetFields;
-
 
     public BFCMainUI(Project project) {
         this.project = project;
