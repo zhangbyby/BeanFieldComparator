@@ -23,7 +23,7 @@
 3. 添加static、final字段过滤选框
 
 待实现：
-1. source端只展示可读状态字段，target端之战时可写状态字段
+1. source端只展示可读状态字段，target端只展示可写状态字段
 2. 在方法调用（BeanUtils.copyProperties）代码处快捷键打开窗口
 </pre>
     ]]></description>
