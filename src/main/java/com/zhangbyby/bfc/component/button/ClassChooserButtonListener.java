@@ -22,15 +22,16 @@ public class ClassChooserButtonListener implements ActionListener {
     private final String title;
     private final JTextField classPathText;
     private final JList<PsiField> fieldList;
-
     private final JList<PsiField> anotherList;
+    private final boolean isTarget;
 
-    public ClassChooserButtonListener(BFCMainUI mainUI, String title, JTextField classPathText, JList<PsiField> fieldList, JList<PsiField> anotherList) {
+    public ClassChooserButtonListener(BFCMainUI mainUI, String title, JTextField classPathText, JList<PsiField> fieldList, JList<PsiField> anotherList, boolean isTarget) {
         this.mainUI = mainUI;
         this.title = title;
         this.classPathText = classPathText;
         this.fieldList = fieldList;
         this.anotherList = anotherList;
+        this.isTarget = isTarget;
     }
 
     @Override
@@ -40,7 +41,7 @@ public class ClassChooserButtonListener implements ActionListener {
         classChooser.showDialog();
         if (classChooser.getSelected() != null) {
             classPathText.setText(classChooser.getSelected().getQualifiedName());
-            fieldList.setListData(PsiClassUtils.filterFields(classChooser.getSelected().getAllFields(), mainUI.getHideStatic(), mainUI.getHideFinal()));
+            fieldList.setListData(PsiClassUtils.filterFields(classChooser.getSelected().getAllFields(), mainUI.getHideStatic(), mainUI.getHideFinal(), mainUI.getAutoHide(), isTarget));
             anotherList.updateUI();
         }
     }

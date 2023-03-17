@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class PsiClassUtils {
-    public static PsiField[] filterFields(PsiField[] psiFields, JCheckBox hideStatic, JCheckBox hideFinal) {
+    public static PsiField[] filterFields(PsiField[] psiFields, JCheckBox hideStatic, JCheckBox hideFinal, JCheckBox autoHide, boolean isTarget) {
         List<PsiField> collect = Arrays.stream(psiFields).filter(it -> {
             PsiModifierList modifierList = it.getModifierList();
             if (modifierList == null) {
@@ -20,6 +20,9 @@ public abstract class PsiClassUtils {
                 return false;
             }
             if (hideFinal.isSelected() && modifierList.hasExplicitModifier(PsiModifier.FINAL)) {
+                return false;
+            }
+            if (isTarget && autoHide.isSelected() && modifierList.hasExplicitModifier(PsiModifier.FINAL)) {
                 return false;
             }
             return true;

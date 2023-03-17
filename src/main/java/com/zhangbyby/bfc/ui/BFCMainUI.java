@@ -1,5 +1,6 @@
 package com.zhangbyby.bfc.ui;
 
+import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -7,14 +8,13 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.components.JBList;
 import com.zhangbyby.bfc.component.button.ClassChooserButtonListener;
+import com.zhangbyby.bfc.component.dialog.BFCDialogWrapper;
 import com.zhangbyby.bfc.component.list.listener.JListItemClickListener;
 import com.zhangbyby.bfc.component.list.listener.JListItemSelectionListener;
 import com.zhangbyby.bfc.component.list.render.JListPsiFieldCellRenderer;
 import com.zhangbyby.bfc.util.PsiClassUtils;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.util.logging.Logger;
 
 /**
  * 界面设计
@@ -22,8 +22,6 @@ import java.util.logging.Logger;
  * @author zhangbyby
  */
 public class BFCMainUI {
-    private final static Logger log = Logger.getLogger(BFCMainUI.class.getSimpleName());
-
     private final Project project;
 
     /**
@@ -38,6 +36,10 @@ public class BFCMainUI {
     private JPanel filterMenuPanel;
     private JCheckBox hideStatic;
     private JCheckBox hideFinal;
+    /**
+     * source: don't hide
+     * traget: hide final
+     */
     private JCheckBox autoHide;
 
     /**
@@ -52,23 +54,46 @@ public class BFCMainUI {
 
     public BFCMainUI(Project project) {
         this.project = project;
-        hideStatic.addActionListener(this::reloadFields);
-        hideFinal.addActionListener(this::reloadFields);
+
+        hideStatic.addActionListener(e -> {
+            autoHide.setSelected(false);
+            reloadFields();
+        });
+        hideFinal.addActionListener(e -> {
+            autoHide.setSelected(false);
+            reloadFields();
+        });
+        autoHide.addActionListener(e -> {
+            hideStatic.setSelected(false);
+            hideFinal.setSelected(false);
+            reloadFields();
+        });
+
+        if (BFCDialogWrapper.sourceClassName != null) {
+            sourceClassQualifiedName.setText(BFCDialogWrapper.sourceClassName);
+        }
+        if (BFCDialogWrapper.targetClassName != null) {
+            targetClassQualifiedName.setText(BFCDialogWrapper.targetClassName);
+        }
+        reloadFields();
     }
 
-    private void reloadFields(ActionEvent e) {
-        reloadFields(sourceClassQualifiedName, sourceFields);
-        reloadFields(targetClassQualifiedName, targetFields);
+    private void reloadFields() {
+        reloadFields(sourceClassQualifiedName, sourceFields, false);
+        reloadFields(targetClassQualifiedName, targetFields, true);
     }
 
-    private void reloadFields(JTextField classNameText, JList<PsiField> fieldJList) {
+    private void reloadFields(JTextField classNameText, JList<PsiField> fieldJList, boolean isTarget) {
+        if (Strings.isNullOrEmpty(classNameText.getText())) {
+            return;
+        }
         PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(classNameText.getText(), GlobalSearchScope.allScope(project));
         if (psiClass == null) {
             classNameText.setText("");
             fieldJList.setListData(new PsiField[]{});
             return;
         }
-        fieldJList.setListData(PsiClassUtils.filterFields(psiClass.getFields(), hideStatic, hideFinal));
+        fieldJList.setListData(PsiClassUtils.filterFields(psiClass.getFields(), hideStatic, hideFinal, autoHide, isTarget));
     }
 
     private void createUIComponents() {
@@ -94,9 +119,9 @@ public class BFCMainUI {
         targetFields.addListSelectionListener(new JListItemSelectionListener(targetFields, sourceFields));
 
         sourceClassChooseButton.addActionListener(
-                new ClassChooserButtonListener(this, "SourceClass", sourceClassQualifiedName, sourceFields, targetFields));
+                new ClassChooserButtonListener(this, "SourceClass", sourceClassQualifiedName, sourceFields, targetFields, false));
         targetClassChooseButton.addActionListener(
-                new ClassChooserButtonListener(this, "TargetClass", targetClassQualifiedName, targetFields, sourceFields));
+                new ClassChooserButtonListener(this, "TargetClass", targetClassQualifiedName, targetFields, sourceFields, true));
     }
 
     public JPanel getMainPanel() {
@@ -107,30 +132,6 @@ public class BFCMainUI {
         return project;
     }
 
-    public JPanel getSourceClass() {
-        return sourceClass;
-    }
-
-    public JPanel getTargetClass() {
-        return targetClass;
-    }
-
-    public JPanel getComparePanel() {
-        return comparePanel;
-    }
-
-    public JScrollPane getSourceClassFieldsPanel() {
-        return sourceClassFieldsPanel;
-    }
-
-    public JScrollPane getTargetClassFieldsPanel() {
-        return targetClassFieldsPanel;
-    }
-
-    public JPanel getFilterMenuPanel() {
-        return filterMenuPanel;
-    }
-
     public JCheckBox getHideStatic() {
         return hideStatic;
     }
@@ -139,27 +140,7 @@ public class BFCMainUI {
         return hideFinal;
     }
 
-    public JTextField getSourceClassQualifiedName() {
-        return sourceClassQualifiedName;
-    }
-
-    public JButton getSourceClassChooseButton() {
-        return sourceClassChooseButton;
-    }
-
-    public JTextField getTargetClassQualifiedName() {
-        return targetClassQualifiedName;
-    }
-
-    public JButton getTargetClassChooseButton() {
-        return targetClassChooseButton;
-    }
-
-    public JList<PsiField> getSourceFields() {
-        return sourceFields;
-    }
-
-    public JList<PsiField> getTargetFields() {
-        return targetFields;
+    public JCheckBox getAutoHide() {
+        return autoHide;
     }
 }
