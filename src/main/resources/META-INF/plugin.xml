@@ -22,7 +22,7 @@
 2. 双击跳转源码位置
 3. 添加static、final字段过滤选框
 4. 自动隐藏: 只隐藏target端的final字段
-4. 在方法调用（BeanUtils.copyProperties）代码处快捷键打开窗口
+5. 在方法调用（BeanUtils.copyProperties）代码处快捷键打开窗口
 </pre>
     ]]></description>
 
