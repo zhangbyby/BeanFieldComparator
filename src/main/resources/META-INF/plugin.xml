@@ -36,11 +36,13 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-
+        <intentionAction>
+            <className>com.zhangbyby.bfc.action.BFCIntentionAction</className>
+        </intentionAction>
     </extensions>
     <actions>
-        <action id="BeanFieldComparator" class="com.zhangbyby.bfc.BFCAction"
-                text="BeanFieldComparator" description="BeanFieldComparator">
+        <action id="ToolsMenuItemAction" class="com.zhangbyby.bfc.action.BFCToolMenuAction"
+                text="BeanFieldComparator" description="比较字段">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
     </actions>

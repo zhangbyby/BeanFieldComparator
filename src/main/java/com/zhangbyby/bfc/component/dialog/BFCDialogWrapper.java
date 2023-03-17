@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.zhangbyby.bfc.BFCAction.PLUGIN_TITLE;
+import static com.zhangbyby.bfc.action.BFCToolMenuAction.PLUGIN_TITLE;
 
 /**
  * 插件弹窗包装
@@ -16,6 +16,8 @@ import static com.zhangbyby.bfc.BFCAction.PLUGIN_TITLE;
  */
 public class BFCDialogWrapper extends DialogWrapper {
     private final Project project;
+    public static String sourceClassName;
+    public static String targetClassName;
 
     public BFCDialogWrapper(Project project) {
         super(true);
