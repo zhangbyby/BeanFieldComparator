@@ -16,6 +16,9 @@ import com.zhangbyby.bfc.util.PsiClassUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 界面设计
@@ -57,11 +60,11 @@ public class BFCMainUI {
         this.project = project;
 
         Border sourceBorder = BorderFactory.createEtchedBorder();
-        Border sourceTitledBorder = BorderFactory.createTitledBorder(sourceBorder, "Source Class Fields");
+        Border sourceTitledBorder = BorderFactory.createTitledBorder(sourceBorder, "<Source>");
         sourceClassFieldsPanel.setBorder(sourceTitledBorder);
 
         Border targetBorder = BorderFactory.createEtchedBorder();
-        Border targetTitledBorder = BorderFactory.createTitledBorder(targetBorder, "Target Class Fields");
+        Border targetTitledBorder = BorderFactory.createTitledBorder(targetBorder, "<Target>");
         targetClassFieldsPanel.setBorder(targetTitledBorder);
 
         hideStatic.addActionListener(e -> {
@@ -96,6 +99,11 @@ public class BFCMainUI {
         if (Strings.isNullOrEmpty(classNameText.getText())) {
             return;
         }
+
+        TitledBorder border = (TitledBorder) (isTarget ? targetClassFieldsPanel.getBorder() : sourceClassFieldsPanel.getBorder());
+        List<String> classNamePath = Arrays.asList(classNameText.getText().split("\\."));
+        border.setTitle(classNamePath.get(classNamePath.size() - 1));
+
         PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(classNameText.getText(), GlobalSearchScope.allScope(project));
         if (psiClass == null) {
             classNameText.setText("");
