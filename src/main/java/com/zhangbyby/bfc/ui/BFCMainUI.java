@@ -15,6 +15,7 @@ import com.zhangbyby.bfc.component.list.render.JListPsiFieldCellRenderer;
 import com.zhangbyby.bfc.util.PsiClassUtils;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 
 /**
  * 界面设计
@@ -54,6 +55,14 @@ public class BFCMainUI {
 
     public BFCMainUI(Project project) {
         this.project = project;
+
+        Border sourceBorder = BorderFactory.createEtchedBorder();
+        Border sourceTitledBorder = BorderFactory.createTitledBorder(sourceBorder, "Source Class Fields");
+        sourceClassFieldsPanel.setBorder(sourceTitledBorder);
+
+        Border targetBorder = BorderFactory.createEtchedBorder();
+        Border targetTitledBorder = BorderFactory.createTitledBorder(targetBorder, "Target Class Fields");
+        targetClassFieldsPanel.setBorder(targetTitledBorder);
 
         hideStatic.addActionListener(e -> {
             autoHide.setSelected(false);

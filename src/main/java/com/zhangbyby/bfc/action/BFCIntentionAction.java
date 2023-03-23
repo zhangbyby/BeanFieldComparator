@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 上下文操作入口
@@ -44,9 +43,6 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
         String sourceClassName = isApache ? classNames.get(1) : classNames.get(0);
         String targetClassName = isApache ? classNames.get(0) : classNames.get(1);
 
-        logger.info("sourceClassName: "+ sourceClassName);
-        logger.info("targetClassName: "+ targetClassName);
-
         BFCDialogWrapper.sourceClassName = sourceClassName;
         BFCDialogWrapper.targetClassName = targetClassName;
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -61,31 +57,24 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
     public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
         PsiElement parent = element.getParent();
         if (!(parent instanceof PsiReferenceExpression)) {
-            logger.info("parent element is not instanceof PsiReferenceExpression: " + parent.getClass());
             return false;
         }
         PsiElement context = parent.getContext();
         if (!(context instanceof PsiMethodCallExpression)) {
-            logger.info("parent element context is not instanceof PsiMethodCallExpression: " + Optional.ofNullable(context).map(Object::getClass).map(Class::getCanonicalName).orElse(null));
             return false;
         }
         if (!context.getText().contains("copyProperties")) {
-            logger.info("context is not contains 'copyProperties': " + context.getText());
             return false;
         }
         PsiMethod psiMethod = ((PsiMethodCallExpression) context).resolveMethod();
         if (psiMethod == null) {
-            logger.info("context resolve method is null");
             return false;
         }
-        logger.info("method name: " + psiMethod.getName());
 
         PsiClass methodClass = (PsiClass) psiMethod.getContext();
         if (methodClass == null || methodClass.getQualifiedName() == null) {
-            logger.info("method PsiClass is null or PsiClass qualifiedName is null");
             return false;
         }
-        logger.info("class qualifiedName: " + methodClass.getQualifiedName());
 
         return readArgumentsQualifiedClassName((PsiMethodCallExpression) context) != null;
     }
@@ -107,7 +96,6 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
             }
             classNames.add(psiClass.getQualifiedName());
         }
-        logger.info("readArgumentsQualifiedClassName result: " + classNames);
         return classNames;
     }
 
