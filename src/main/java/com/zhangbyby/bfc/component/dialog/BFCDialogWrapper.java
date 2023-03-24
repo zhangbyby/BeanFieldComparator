@@ -2,15 +2,14 @@ package com.zhangbyby.bfc.component.dialog;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.zhangbyby.bfc.common.Constants;
 import com.zhangbyby.bfc.ui.BFCMainUI;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.zhangbyby.bfc.action.BFCToolMenuAction.PLUGIN_TITLE;
-
 /**
- * 插件弹窗包装
+ * <B>MAIN</B>: dialog wrapper
  *
  * @author zhangbyby
  */
@@ -22,7 +21,7 @@ public class BFCDialogWrapper extends DialogWrapper {
     public BFCDialogWrapper(Project project) {
         super(true);
         this.project = project;
-        setTitle(PLUGIN_TITLE);
+        setTitle(Constants.PLUGIN_TITLE);
         init();
     }
 

@@ -6,14 +6,14 @@ import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
 import com.zhangbyby.bfc.ui.BFCMainUI;
-import com.zhangbyby.bfc.util.PsiClassUtils;
+import com.zhangbyby.bfc.common.PsiClassUtils;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * 类选择按钮监听器
+ * class chooser btn listener
  *
  * @author zhangbyby
  */

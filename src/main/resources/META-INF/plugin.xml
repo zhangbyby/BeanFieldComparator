@@ -15,15 +15,13 @@
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
 <pre>
-比较两个Bean的字段差异
+Compare properties or fields of two classes
 
-已实现：
-1. 单击字段选择联动
-2. 双击跳转源码位置
-3. 添加static、final字段过滤选框
-4. 自动隐藏: 只隐藏target端的final字段
-5. 在方法调用（BeanUtils.copyProperties）代码处快捷键打开窗口
-6. 支持按照Getter/Setter比较
+features：
+1. select and linkage
+2. double-click to navigate to source code
+3. filter static or final fields or auto filtered
+4. at source code BeanUtils.copyProperties(spring+apache) line use the alt+enter shortcut key and then select BFC to open the dialog
 </pre>
     ]]></description>
 
@@ -41,7 +39,7 @@
     </extensions>
     <actions>
         <action id="ToolsMenuItemAction" class="com.zhangbyby.bfc.action.BFCToolMenuAction"
-                text="BeanFieldComparator" description="比较字段">
+                text="BeanFieldComparator" description="Compare fields or properties">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
     </actions>

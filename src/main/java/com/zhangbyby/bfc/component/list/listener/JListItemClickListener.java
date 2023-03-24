@@ -9,7 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
- * JList组件 元素点击监听器
+ * JList component item click listener
  *
  * @author zhangbyby
  */
@@ -29,7 +29,7 @@ public class JListItemClickListener extends MouseAdapter {
             int index = selfList.locationToIndex(e.getPoint());
             JListItemWrapper itemWrapper = selfList.getModel().getElementAt(index);
 
-            // 关闭弹窗
+            // close dialog
             // BuCPCompareDialogWrapper.getInstance().close(1, true);
             Navigatable navigatable;
             if (itemWrapper.isProperty()) {

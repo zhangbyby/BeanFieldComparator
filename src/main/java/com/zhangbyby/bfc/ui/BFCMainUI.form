@@ -136,7 +136,8 @@
               </grid>
             </constraints>
             <properties>
-              <text value="隐藏static"/>
+              <text value="hide static"/>
+              <toolTipText value="hide source and target static fields"/>
             </properties>
           </component>
           <component id="6ef59" class="javax.swing.JCheckBox" binding="hideFinal">
@@ -146,7 +147,8 @@
               </grid>
             </constraints>
             <properties>
-              <text value="隐藏final"/>
+              <text value="hide final"/>
+              <toolTipText value="hide source and target final fields"/>
             </properties>
           </component>
           <component id="32bff" class="javax.swing.JCheckBox" binding="autoHide">
@@ -154,7 +156,8 @@
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="自动隐藏"/>
+              <text value="auto hide"/>
+              <toolTipText value="only hide target final fields"/>
             </properties>
           </component>
           <component id="987a6" class="javax.swing.JCheckBox" binding="disPropertyGroup">
@@ -163,7 +166,8 @@
             </constraints>
             <properties>
               <selected value="false"/>
-              <text value="只显示字段"/>
+              <text value="show field"/>
+              <toolTipText value="show fields"/>
             </properties>
           </component>
         </children>

@@ -7,7 +7,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 /**
- * JList组件 元素选择监听器
+ * JList component selection listener
  *
  * @author zhangbyby
  */

@@ -6,13 +6,13 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.components.JBList;
+import com.zhangbyby.bfc.common.PsiClassUtils;
 import com.zhangbyby.bfc.component.button.ClassChooserButtonListener;
 import com.zhangbyby.bfc.component.dialog.BFCDialogWrapper;
 import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
 import com.zhangbyby.bfc.component.list.listener.JListItemClickListener;
 import com.zhangbyby.bfc.component.list.listener.JListItemSelectionListener;
 import com.zhangbyby.bfc.component.list.render.JListItemCellRenderer;
-import com.zhangbyby.bfc.util.PsiClassUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 界面设计
+ * main ui
  *
  * @author zhangbyby
  */
@@ -42,7 +42,7 @@ public class BFCMainUI {
     private JCheckBox hideFinal;
     /**
      * source: don't hide
-     * traget: hide final
+     * target: hide final
      */
     private JCheckBox autoHide;
 
@@ -144,12 +144,12 @@ public class BFCMainUI {
         targetElements = new JBList<>();
 
         sourceElements.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        sourceElements.setCellRenderer(new JListItemCellRenderer(targetElements, this, false));
+        sourceElements.setCellRenderer(new JListItemCellRenderer(targetElements, false));
         sourceElements.addMouseListener(new JListItemClickListener(sourceElements, false));
         sourceElements.addListSelectionListener(new JListItemSelectionListener(sourceElements, targetElements));
 
         targetElements.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        targetElements.setCellRenderer(new JListItemCellRenderer(sourceElements, this, true));
+        targetElements.setCellRenderer(new JListItemCellRenderer(sourceElements, true));
         targetElements.addMouseListener(new JListItemClickListener(targetElements, true));
         targetElements.addListSelectionListener(new JListItemSelectionListener(targetElements, sourceElements));
 

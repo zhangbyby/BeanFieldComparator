@@ -5,8 +5,11 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PropertyUtilBase;
 
-import java.util.Optional;
-
+/**
+ * JList item wrapper for show field or property
+ *
+ * @author zhangbyby
+ */
 public class JListItemWrapper {
     private final boolean isProperty;
     private final String name;
@@ -16,36 +19,49 @@ public class JListItemWrapper {
     private PsiMethod getterMethod;
     private PsiMethod setterMethod;
 
-    private final String simpleTypeText;
-    private final String tipText;
+    private final String simpleItemType;
+    private String tipText;
+    private String tipGetterText;
+    private String tipSetterText;
+
+    private final String ownerClassSimpleName;
 
     public JListItemWrapper(PsiField psiField) {
         this.psiField = psiField;
         this.isProperty = false;
         this.name = psiField.getName();
-        this.simpleTypeText = psiField.getType().getPresentableText();
-        this.tipText = Optional.ofNullable(psiField.getContainingClass())
-                .map(PsiClass::getQualifiedName).orElse("") + "#" + this.name;
+        this.simpleItemType = psiField.getType().getPresentableText();
+
+        PsiClass ownerClass = psiField.getContainingClass();
+        this.tipText = ownerClass.getQualifiedName() + "#" + this.name;
+        this.ownerClassSimpleName = ownerClass.getName();
     }
 
     public JListItemWrapper(PsiMethod getterOrSetter, String name) {
         this.isProperty = true;
         this.name = name;
-        this.simpleTypeText = PropertyUtilBase.getPropertyType(getterOrSetter).getPresentableText();
-        this.tipText = Optional.ofNullable(getterOrSetter.getContainingClass())
-                .map(PsiClass::getQualifiedName).orElse("") + "#" + this.name;
+        this.simpleItemType = PropertyUtilBase.getPropertyType(getterOrSetter).getPresentableText();
+
+        PsiClass ownerClass = getterOrSetter.getContainingClass();
+        this.ownerClassSimpleName = ownerClass.getName();
+        String prefix = ownerClass.getQualifiedName() + "#";
+
         if (PropertyUtilBase.isSimplePropertyGetter(getterOrSetter)) {
             this.getterMethod = getterOrSetter;
+            this.tipGetterText = prefix + getterOrSetter.getName();
         } else {
             this.setterMethod = getterOrSetter;
+            this.tipSetterText = prefix + getterOrSetter.getName();
         }
     }
 
-    public JListItemWrapper merge(JListItemWrapper another) {
+    public JListItemWrapper mergeMethod(JListItemWrapper another) {
         if (this.getterMethod == null) {
             this.getterMethod = another.getterMethod;
+            this.tipGetterText = this.getterMethod.getContainingClass().getQualifiedName() + "#" + this.getterMethod.getName();
         } else {
             this.setterMethod = another.setterMethod;
+            this.tipSetterText = this.setterMethod.getContainingClass().getQualifiedName() + "#" + this.setterMethod.getName();
         }
         return this;
     }
@@ -82,11 +98,23 @@ public class JListItemWrapper {
         return name;
     }
 
-    public String getSimpleTypeText() {
-        return simpleTypeText;
+    public String getSimpleItemType() {
+        return simpleItemType;
     }
 
     public String getTipText() {
         return tipText;
+    }
+
+    public String getTipGetterText() {
+        return tipGetterText;
+    }
+
+    public String getTipSetterText() {
+        return tipSetterText;
+    }
+
+    public String getOwnerClassSimpleName() {
+        return ownerClassSimpleName;
     }
 }

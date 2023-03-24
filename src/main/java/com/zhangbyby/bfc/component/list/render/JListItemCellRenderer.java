@@ -4,7 +4,6 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.ui.JBColor;
 import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
-import com.zhangbyby.bfc.ui.BFCMainUI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,18 +11,16 @@ import java.awt.*;
 import static com.intellij.icons.AllIcons.Nodes.*;
 
 /**
- * JList组件 元素渲染器
+ * JList item render
  *
  * @author zhangbyby
  */
 public class JListItemCellRenderer implements ListCellRenderer<JListItemWrapper> {
     private final JList<JListItemWrapper> anotherList;
-    private final BFCMainUI mainUI;
     private final boolean isTarget;
 
-    public JListItemCellRenderer(JList<JListItemWrapper> anotherList, BFCMainUI mainUI, boolean isTarget) {
+    public JListItemCellRenderer(JList<JListItemWrapper> anotherList, boolean isTarget) {
         this.anotherList = anotherList;
-        this.mainUI = mainUI;
         this.isTarget = isTarget;
     }
 
@@ -31,11 +28,13 @@ public class JListItemCellRenderer implements ListCellRenderer<JListItemWrapper>
     public Component getListCellRendererComponent(JList list, JListItemWrapper value, int index, boolean isSelected, boolean cellHasFocus) {
         JLabel container = new JLabel();
         container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
-        container.setText(value.getName() + ": " + value.getSimpleTypeText());
-        container.setToolTipText(value.getTipText());
+        container.setText(value.getName() + ": " + value.getSimpleItemType());
+
+//        container.add(new JLabel("→ " + value.getOwnerClassSimpleName()));
 
         if (!value.isProperty()) {
             container.setIcon(Field);
+            container.setToolTipText(value.getTipText());
 
             PsiModifierList modifierList = value.getPsiField().getModifierList();
             if (modifierList != null) {
@@ -51,7 +50,16 @@ public class JListItemCellRenderer implements ListCellRenderer<JListItemWrapper>
                 }
             }
         } else {
-            container.setIcon(Property);
+            boolean read = value.getGetterMethod() != null;
+            boolean write = value.getSetterMethod() != null;
+            if (read && write) {
+                container.setIcon(PropertyReadWrite);
+            } else if (read) {
+                container.setIcon(PropertyRead);
+            } else if (write) {
+                container.setIcon(PropertyWrite);
+            }
+            container.setToolTipText(isTarget ? value.getTipSetterText() : value.getTipGetterText());
         }
 
         int i = 0;

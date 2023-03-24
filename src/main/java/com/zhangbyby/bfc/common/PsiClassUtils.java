@@ -1,4 +1,4 @@
-package com.zhangbyby.bfc.util;
+package com.zhangbyby.bfc.common;
 
 import com.intellij.psi.*;
 import com.intellij.psi.util.PropertyUtilBase;
@@ -42,7 +42,7 @@ public abstract class PsiClassUtils {
                     .collect(Collectors.toMap(
                             JListItemWrapper::getName,
                             it -> it,
-                            JListItemWrapper::merge))
+                            JListItemWrapper::mergeMethod))
                     .entrySet().stream().filter((entry) -> {
                         if (isTarget) {
                             return entry.getValue().getSetterMethod() != null;
