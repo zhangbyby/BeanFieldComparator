@@ -4,14 +4,14 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.components.JBList;
 import com.zhangbyby.bfc.component.button.ClassChooserButtonListener;
 import com.zhangbyby.bfc.component.dialog.BFCDialogWrapper;
+import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
 import com.zhangbyby.bfc.component.list.listener.JListItemClickListener;
 import com.zhangbyby.bfc.component.list.listener.JListItemSelectionListener;
-import com.zhangbyby.bfc.component.list.render.JListPsiFieldCellRenderer;
+import com.zhangbyby.bfc.component.list.render.JListItemCellRenderer;
 import com.zhangbyby.bfc.util.PsiClassUtils;
 
 import javax.swing.*;
@@ -35,8 +35,8 @@ public class BFCMainUI {
     private JPanel sourceClass;
     private JPanel targetClass;
     private JPanel comparePanel;
-    private JScrollPane sourceClassFieldsPanel;
-    private JScrollPane targetClassFieldsPanel;
+    private JScrollPane sourceClassElementsPanel;
+    private JScrollPane targetClassElementsPanel;
     private JPanel filterMenuPanel;
     private JCheckBox hideStatic;
     private JCheckBox hideFinal;
@@ -53,32 +53,50 @@ public class BFCMainUI {
     private JButton sourceClassChooseButton;
     private JTextField targetClassQualifiedName;
     private JButton targetClassChooseButton;
-    private JList<PsiField> sourceFields;
-    private JList<PsiField> targetFields;
+    private JList<JListItemWrapper> sourceElements;
+    private JList<JListItemWrapper> targetElements;
+    private JCheckBox disPropertyGroup;
 
     public BFCMainUI(Project project) {
         this.project = project;
 
         Border sourceBorder = BorderFactory.createEtchedBorder();
         Border sourceTitledBorder = BorderFactory.createTitledBorder(sourceBorder, "<Source>");
-        sourceClassFieldsPanel.setBorder(sourceTitledBorder);
+        sourceClassElementsPanel.setBorder(sourceTitledBorder);
 
         Border targetBorder = BorderFactory.createEtchedBorder();
         Border targetTitledBorder = BorderFactory.createTitledBorder(targetBorder, "<Target>");
-        targetClassFieldsPanel.setBorder(targetTitledBorder);
+        targetClassElementsPanel.setBorder(targetTitledBorder);
+
+        disPropertyGroup.addActionListener(e -> {
+            if (disPropertyGroup.isSelected()) {
+                hideStatic.setEnabled(true);
+                hideFinal.setEnabled(true);
+                autoHide.setEnabled(true);
+            } else {
+                hideStatic.setEnabled(false);
+                hideFinal.setEnabled(false);
+                autoHide.setEnabled(false);
+            }
+            reloadAllItem();
+        });
+
+        hideStatic.setEnabled(false);
+        hideFinal.setEnabled(false);
+        autoHide.setEnabled(false);
 
         hideStatic.addActionListener(e -> {
             autoHide.setSelected(false);
-            reloadFields();
+            reloadAllItem();
         });
         hideFinal.addActionListener(e -> {
             autoHide.setSelected(false);
-            reloadFields();
+            reloadAllItem();
         });
         autoHide.addActionListener(e -> {
             hideStatic.setSelected(false);
             hideFinal.setSelected(false);
-            reloadFields();
+            reloadAllItem();
         });
 
         if (BFCDialogWrapper.sourceClassName != null) {
@@ -87,30 +105,30 @@ public class BFCMainUI {
         if (BFCDialogWrapper.targetClassName != null) {
             targetClassQualifiedName.setText(BFCDialogWrapper.targetClassName);
         }
-        reloadFields();
+        reloadAllItem();
     }
 
-    private void reloadFields() {
-        reloadFields(sourceClassQualifiedName, sourceFields, false);
-        reloadFields(targetClassQualifiedName, targetFields, true);
+    private void reloadAllItem() {
+        reloadSingleItem(sourceClassQualifiedName, sourceElements, false);
+        reloadSingleItem(targetClassQualifiedName, targetElements, true);
     }
 
-    private void reloadFields(JTextField classNameText, JList<PsiField> fieldJList, boolean isTarget) {
+    private void reloadSingleItem(JTextField classNameText, JList<JListItemWrapper> itemList, boolean isTarget) {
         if (Strings.isNullOrEmpty(classNameText.getText())) {
             return;
         }
 
-        TitledBorder border = (TitledBorder) (isTarget ? targetClassFieldsPanel.getBorder() : sourceClassFieldsPanel.getBorder());
+        TitledBorder border = (TitledBorder) (isTarget ? targetClassElementsPanel.getBorder() : sourceClassElementsPanel.getBorder());
         List<String> classNamePath = Arrays.asList(classNameText.getText().split("\\."));
         border.setTitle(classNamePath.get(classNamePath.size() - 1));
 
         PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(classNameText.getText(), GlobalSearchScope.allScope(project));
         if (psiClass == null) {
             classNameText.setText("");
-            fieldJList.setListData(new PsiField[]{});
+            itemList.setListData(new JListItemWrapper[0]);
             return;
         }
-        fieldJList.setListData(PsiClassUtils.filterFields(psiClass.getFields(), hideStatic, hideFinal, autoHide, isTarget));
+        itemList.setListData(PsiClassUtils.filterElements(psiClass, this, isTarget));
     }
 
     private void createUIComponents() {
@@ -122,23 +140,23 @@ public class BFCMainUI {
         targetClassQualifiedName = new JTextField();
         targetClassQualifiedName.setToolTipText("TargetClassQualifiedName");
 
-        sourceFields = new JBList<>();
-        targetFields = new JBList<>();
+        sourceElements = new JBList<>();
+        targetElements = new JBList<>();
 
-        sourceFields.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        sourceFields.setCellRenderer(new JListPsiFieldCellRenderer(targetFields));
-        sourceFields.addMouseListener(new JListItemClickListener(sourceFields));
-        sourceFields.addListSelectionListener(new JListItemSelectionListener(sourceFields, targetFields));
+        sourceElements.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        sourceElements.setCellRenderer(new JListItemCellRenderer(targetElements, this, false));
+        sourceElements.addMouseListener(new JListItemClickListener(sourceElements, false));
+        sourceElements.addListSelectionListener(new JListItemSelectionListener(sourceElements, targetElements));
 
-        targetFields.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        targetFields.setCellRenderer(new JListPsiFieldCellRenderer(sourceFields));
-        targetFields.addMouseListener(new JListItemClickListener(targetFields));
-        targetFields.addListSelectionListener(new JListItemSelectionListener(targetFields, sourceFields));
+        targetElements.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        targetElements.setCellRenderer(new JListItemCellRenderer(sourceElements, this, true));
+        targetElements.addMouseListener(new JListItemClickListener(targetElements, true));
+        targetElements.addListSelectionListener(new JListItemSelectionListener(targetElements, sourceElements));
 
         sourceClassChooseButton.addActionListener(
-                new ClassChooserButtonListener(this, "SourceClass", sourceClassQualifiedName, sourceFields, targetFields, false));
+                new ClassChooserButtonListener(this, "SourceClass", sourceClassQualifiedName, sourceElements, targetElements, false));
         targetClassChooseButton.addActionListener(
-                new ClassChooserButtonListener(this, "TargetClass", targetClassQualifiedName, targetFields, sourceFields, true));
+                new ClassChooserButtonListener(this, "TargetClass", targetClassQualifiedName, targetElements, sourceElements, true));
     }
 
     public JPanel getMainPanel() {
@@ -159,5 +177,9 @@ public class BFCMainUI {
 
     public JCheckBox getAutoHide() {
         return autoHide;
+    }
+
+    public JCheckBox getDisPropertyGroup() {
+        return disPropertyGroup;
     }
 }

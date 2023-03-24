@@ -3,8 +3,8 @@ package com.zhangbyby.bfc.component.button;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
 import com.zhangbyby.bfc.ui.BFCMainUI;
 import com.zhangbyby.bfc.util.PsiClassUtils;
 
@@ -21,11 +21,11 @@ public class ClassChooserButtonListener implements ActionListener {
     private final BFCMainUI mainUI;
     private final String title;
     private final JTextField classPathText;
-    private final JList<PsiField> fieldList;
-    private final JList<PsiField> anotherList;
+    private final JList<JListItemWrapper> fieldList;
+    private final JList<JListItemWrapper> anotherList;
     private final boolean isTarget;
 
-    public ClassChooserButtonListener(BFCMainUI mainUI, String title, JTextField classPathText, JList<PsiField> fieldList, JList<PsiField> anotherList, boolean isTarget) {
+    public ClassChooserButtonListener(BFCMainUI mainUI, String title, JTextField classPathText, JList<JListItemWrapper> fieldList, JList<JListItemWrapper> anotherList, boolean isTarget) {
         this.mainUI = mainUI;
         this.title = title;
         this.classPathText = classPathText;
@@ -41,7 +41,7 @@ public class ClassChooserButtonListener implements ActionListener {
         classChooser.showDialog();
         if (classChooser.getSelected() != null) {
             classPathText.setText(classChooser.getSelected().getQualifiedName());
-            fieldList.setListData(PsiClassUtils.filterFields(classChooser.getSelected().getAllFields(), mainUI.getHideStatic(), mainUI.getHideFinal(), mainUI.getAutoHide(), isTarget));
+            fieldList.setListData(PsiClassUtils.filterElements(classChooser.getSelected(), mainUI, isTarget));
             anotherList.updateUI();
         }
     }

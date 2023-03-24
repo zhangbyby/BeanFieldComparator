@@ -1,32 +1,56 @@
 package com.zhangbyby.bfc.util;
 
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PropertyUtilBase;
+import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
+import com.zhangbyby.bfc.ui.BFCMainUI;
 
-import javax.swing.*;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class PsiClassUtils {
-    public static PsiField[] filterFields(PsiField[] psiFields, JCheckBox hideStatic, JCheckBox hideFinal, JCheckBox autoHide, boolean isTarget) {
-        List<PsiField> collect = Arrays.stream(psiFields).filter(it -> {
-            PsiModifierList modifierList = it.getModifierList();
-            if (modifierList == null) {
+    public static JListItemWrapper[] filterElements(PsiClass psiClass, BFCMainUI mainUI, boolean isTarget) {
+        if (mainUI.getDisPropertyGroup().isSelected()) {
+            // get all fields
+            PsiField[] allFields = psiClass.getAllFields();
+            return Arrays.stream(allFields).filter(it -> {
+                PsiModifierList modifierList = it.getModifierList();
+                if (modifierList == null) {
+                    return true;
+                }
+                if (mainUI.getHideStatic().isSelected() && modifierList.hasExplicitModifier(PsiModifier.STATIC)) {
+                    return false;
+                }
+                if (mainUI.getHideFinal().isSelected() && modifierList.hasExplicitModifier(PsiModifier.FINAL)) {
+                    return false;
+                }
+                if (isTarget && mainUI.getAutoHide().isSelected() && modifierList.hasExplicitModifier(PsiModifier.FINAL)) {
+                    return false;
+                }
                 return true;
-            }
-            if (hideStatic.isSelected() && modifierList.hasExplicitModifier(PsiModifier.STATIC)) {
-                return false;
-            }
-            if (hideFinal.isSelected() && modifierList.hasExplicitModifier(PsiModifier.FINAL)) {
-                return false;
-            }
-            if (isTarget && autoHide.isSelected() && modifierList.hasExplicitModifier(PsiModifier.FINAL)) {
-                return false;
-            }
-            return true;
-        }).collect(Collectors.toList());
-        return collect.toArray(PsiField[]::new);
+            }).map(JListItemWrapper::new).toArray(JListItemWrapper[]::new);
+        } else {
+            // get all methods
+            PsiMethod[] allMethods = psiClass.getAllMethods();
+
+            // getPropertyName
+            Map<String, JListItemWrapper> propertiesMap = Arrays.stream(allMethods)
+                    .filter(it -> !"getClass".equals(it.getName()))
+                    .filter(it -> PropertyUtilBase.isSimplePropertyGetter(it) || PropertyUtilBase.isSimplePropertySetter(it))
+                    .map(it -> new JListItemWrapper(it, PropertyUtilBase.getPropertyName(it)))
+                    .collect(Collectors.toMap(
+                            JListItemWrapper::getName,
+                            it -> it,
+                            JListItemWrapper::merge))
+                    .entrySet().stream().filter((entry) -> {
+                        if (isTarget) {
+                            return entry.getValue().getSetterMethod() != null;
+                        } else {
+                            return entry.getValue().getGetterMethod() != null;
+                        }
+                    }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            return propertiesMap.values().toArray(new JListItemWrapper[0]);
+        }
     }
 }
