@@ -9,7 +9,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.util.IncorrectOperationException;
 import com.zhangbyby.bfc.component.dialog.BFCDialogWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -102,10 +101,10 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
                 .collect(Collectors.toList()));
         List<String> classNames = new ArrayList<>();
         for (PsiExpression expression : expressions) {
-            if (!((expression.getType()) instanceof PsiClassReferenceType)) {
+            if (!((expression.getType()) instanceof PsiClassType.Stub)) {
                 return null;
             }
-            PsiClassReferenceType type = (PsiClassReferenceType) expression.getType();
+            PsiClassType.Stub type = (PsiClassType.Stub) expression.getType();
             PsiClass psiClass = type.resolve();
             logger.info("express argument type resolve is null: " + (psiClass == null));
             if (psiClass == null) {
