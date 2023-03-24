@@ -15,7 +15,10 @@ import com.zhangbyby.bfc.component.dialog.BFCDialogWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 上下文操作入口
@@ -43,8 +46,8 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
         String sourceClassName = isApache ? classNames.get(1) : classNames.get(0);
         String targetClassName = isApache ? classNames.get(0) : classNames.get(1);
 
-        logger.info("sourceClassName: "+ sourceClassName);
-        logger.info("targetClassName: "+ targetClassName);
+        logger.info("sourceClassName: " + sourceClassName);
+        logger.info("targetClassName: " + targetClassName);
 
         BFCDialogWrapper.sourceClassName = sourceClassName;
         BFCDialogWrapper.targetClassName = targetClassName;
@@ -85,12 +88,18 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
         }
         logger.info("method class qualifiedName: " + methodClass.getQualifiedName());
 
-
         return readArgumentsQualifiedClassName((PsiMethodCallExpression) context) != null;
     }
 
     private List<String> readArgumentsQualifiedClassName(PsiMethodCallExpression context) {
         PsiExpression[] expressions = context.getArgumentList().getExpressions();
+        logger.info("context argument size: " + expressions.length);
+        logger.info("context arguments type: " + Arrays.stream(expressions)
+                .map(PsiExpression::getType)
+                .filter(Objects::nonNull)
+                .map(PsiType::getClass)
+                .map(Class::getName)
+                .collect(Collectors.toList()));
         List<String> classNames = new ArrayList<>();
         for (PsiExpression expression : expressions) {
             if (!((expression.getType()) instanceof PsiClassReferenceType)) {
@@ -98,16 +107,18 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
             }
             PsiClassReferenceType type = (PsiClassReferenceType) expression.getType();
             PsiClass psiClass = type.resolve();
+            logger.info("express argument type resolve is null: " + (psiClass == null));
             if (psiClass == null) {
                 return null;
             }
+            logger.info("express argument type resolve class qualifiedName: " + psiClass.getQualifiedName());
             if (psiClass.getQualifiedName() == null) {
                 return null;
             }
             classNames.add(psiClass.getQualifiedName());
         }
-        logger.info("classNames: "+ classNames);
-        return classNames;
+        logger.info("classNames: " + classNames);
+        return classNames.isEmpty() ? null : classNames;
     }
 
     @Override
