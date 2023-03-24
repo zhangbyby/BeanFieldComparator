@@ -12,58 +12,81 @@ import com.intellij.psi.util.PropertyUtilBase;
  */
 public class JListItemWrapper {
     private final boolean isProperty;
-    private final String name;
+
+    private final String fieldOrProperty;
 
     private PsiField psiField;
 
-    private PsiMethod getterMethod;
-    private PsiMethod setterMethod;
+    private PsiMethod propertyGetterMethod;
+    private PsiMethod propertySetterMethod;
 
-    private final String simpleItemType;
-    private String tipText;
-    private String tipGetterText;
-    private String tipSetterText;
+    private final String fieldOrPropertySimpleClassName;
 
-    private final String ownerClassSimpleName;
+    private String fieldToolTipText;
+    private String propertyGetterMethodToolTipText;
+    private String propertySetterMethodToolTipText;
 
-    public JListItemWrapper(PsiField psiField) {
+    private PsiClass selectedClass;
+    private final String selectedClassSimpleName;
+    private final String fieldOrPropertyOwnerClassSimpleName;
+
+
+    public JListItemWrapper(PsiClass psiClass, PsiField psiField) {
         this.psiField = psiField;
         this.isProperty = false;
-        this.name = psiField.getName();
-        this.simpleItemType = psiField.getType().getPresentableText();
+        this.fieldOrProperty = psiField.getName();
+        this.fieldOrPropertySimpleClassName = psiField.getType().getPresentableText();
 
         PsiClass ownerClass = psiField.getContainingClass();
-        this.tipText = ownerClass.getQualifiedName() + "#" + this.name;
-        this.ownerClassSimpleName = ownerClass.getName();
+        this.fieldToolTipText = ownerClass.getQualifiedName() + "#" + this.fieldOrProperty;
+        this.fieldOrPropertyOwnerClassSimpleName = ownerClass.getName();
+
+        this.selectedClass = psiClass;
+        this.selectedClassSimpleName = psiClass.getName();
     }
 
-    public JListItemWrapper(PsiMethod getterOrSetter, String name) {
+    public JListItemWrapper(PsiClass psiClass, PsiMethod getterOrSetter, String name) {
         this.isProperty = true;
-        this.name = name;
-        this.simpleItemType = PropertyUtilBase.getPropertyType(getterOrSetter).getPresentableText();
+        this.fieldOrProperty = name;
+        this.fieldOrPropertySimpleClassName = PropertyUtilBase.getPropertyType(getterOrSetter).getPresentableText();
 
         PsiClass ownerClass = getterOrSetter.getContainingClass();
-        this.ownerClassSimpleName = ownerClass.getName();
+        this.fieldOrPropertyOwnerClassSimpleName = ownerClass.getName();
         String prefix = ownerClass.getQualifiedName() + "#";
 
         if (PropertyUtilBase.isSimplePropertyGetter(getterOrSetter)) {
-            this.getterMethod = getterOrSetter;
-            this.tipGetterText = prefix + getterOrSetter.getName();
+            this.propertyGetterMethod = getterOrSetter;
+            this.propertyGetterMethodToolTipText = prefix + getterOrSetter.getName();
         } else {
-            this.setterMethod = getterOrSetter;
-            this.tipSetterText = prefix + getterOrSetter.getName();
+            this.propertySetterMethod = getterOrSetter;
+            this.propertySetterMethodToolTipText = prefix + getterOrSetter.getName();
         }
+
+        this.selectedClass = psiClass;
+        this.selectedClassSimpleName = psiClass.getName();
     }
 
     public JListItemWrapper mergeMethod(JListItemWrapper another) {
-        if (this.getterMethod == null) {
-            this.getterMethod = another.getterMethod;
-            this.tipGetterText = this.getterMethod.getContainingClass().getQualifiedName() + "#" + this.getterMethod.getName();
+        if (this.propertyGetterMethod == null) {
+            this.propertyGetterMethod = another.propertyGetterMethod;
+            this.propertyGetterMethodToolTipText = this.propertyGetterMethod.getContainingClass().getQualifiedName() + "#" + this.propertyGetterMethod.getName();
         } else {
-            this.setterMethod = another.setterMethod;
-            this.tipSetterText = this.setterMethod.getContainingClass().getQualifiedName() + "#" + this.setterMethod.getName();
+            this.propertySetterMethod = another.propertySetterMethod;
+            this.propertySetterMethodToolTipText = this.propertySetterMethod.getContainingClass().getQualifiedName() + "#" + this.propertySetterMethod.getName();
         }
         return this;
+    }
+
+    public boolean isFromSuperType() {
+        return !fieldOrPropertyOwnerClassSimpleName.equals(selectedClassSimpleName);
+    }
+
+    public boolean isProperty() {
+        return isProperty;
+    }
+
+    public String getFieldOrProperty() {
+        return fieldOrProperty;
     }
 
     public PsiField getPsiField() {
@@ -74,47 +97,63 @@ public class JListItemWrapper {
         this.psiField = psiField;
     }
 
-    public PsiMethod getGetterMethod() {
-        return getterMethod;
+    public PsiMethod getPropertyGetterMethod() {
+        return propertyGetterMethod;
     }
 
-    public void setGetterMethod(PsiMethod getterMethod) {
-        this.getterMethod = getterMethod;
+    public void setPropertyGetterMethod(PsiMethod propertyGetterMethod) {
+        this.propertyGetterMethod = propertyGetterMethod;
     }
 
-    public PsiMethod getSetterMethod() {
-        return setterMethod;
+    public PsiMethod getPropertySetterMethod() {
+        return propertySetterMethod;
     }
 
-    public void setSetterMethod(PsiMethod setterMethod) {
-        this.setterMethod = setterMethod;
+    public void setPropertySetterMethod(PsiMethod propertySetterMethod) {
+        this.propertySetterMethod = propertySetterMethod;
     }
 
-    public boolean isProperty() {
-        return isProperty;
+    public String getFieldOrPropertySimpleClassName() {
+        return fieldOrPropertySimpleClassName;
     }
 
-    public String getName() {
-        return name;
+    public String getFieldToolTipText() {
+        return fieldToolTipText;
     }
 
-    public String getSimpleItemType() {
-        return simpleItemType;
+    public void setFieldToolTipText(String fieldToolTipText) {
+        this.fieldToolTipText = fieldToolTipText;
     }
 
-    public String getTipText() {
-        return tipText;
+    public String getPropertyGetterMethodToolTipText() {
+        return propertyGetterMethodToolTipText;
     }
 
-    public String getTipGetterText() {
-        return tipGetterText;
+    public void setPropertyGetterMethodToolTipText(String propertyGetterMethodToolTipText) {
+        this.propertyGetterMethodToolTipText = propertyGetterMethodToolTipText;
     }
 
-    public String getTipSetterText() {
-        return tipSetterText;
+    public String getPropertySetterMethodToolTipText() {
+        return propertySetterMethodToolTipText;
     }
 
-    public String getOwnerClassSimpleName() {
-        return ownerClassSimpleName;
+    public void setPropertySetterMethodToolTipText(String propertySetterMethodToolTipText) {
+        this.propertySetterMethodToolTipText = propertySetterMethodToolTipText;
+    }
+
+    public PsiClass getSelectedClass() {
+        return selectedClass;
+    }
+
+    public void setSelectedClass(PsiClass selectedClass) {
+        this.selectedClass = selectedClass;
+    }
+
+    public String getSelectedClassSimpleName() {
+        return selectedClassSimpleName;
+    }
+
+    public String getFieldOrPropertyOwnerClassSimpleName() {
+        return fieldOrPropertyOwnerClassSimpleName;
     }
 }

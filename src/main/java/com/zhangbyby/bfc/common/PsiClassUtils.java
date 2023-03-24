@@ -29,7 +29,7 @@ public abstract class PsiClassUtils {
                     return false;
                 }
                 return true;
-            }).map(JListItemWrapper::new).toArray(JListItemWrapper[]::new);
+            }).map(it -> new JListItemWrapper(psiClass, it)).toArray(JListItemWrapper[]::new);
         } else {
             // get all methods
             PsiMethod[] allMethods = psiClass.getAllMethods();
@@ -38,16 +38,16 @@ public abstract class PsiClassUtils {
             Map<String, JListItemWrapper> propertiesMap = Arrays.stream(allMethods)
                     .filter(it -> !"getClass".equals(it.getName()))
                     .filter(it -> PropertyUtilBase.isSimplePropertyGetter(it) || PropertyUtilBase.isSimplePropertySetter(it))
-                    .map(it -> new JListItemWrapper(it, PropertyUtilBase.getPropertyName(it)))
+                    .map(it -> new JListItemWrapper(psiClass, it, PropertyUtilBase.getPropertyName(it)))
                     .collect(Collectors.toMap(
-                            JListItemWrapper::getName,
+                            JListItemWrapper::getFieldOrProperty,
                             it -> it,
                             JListItemWrapper::mergeMethod))
                     .entrySet().stream().filter((entry) -> {
                         if (isTarget) {
-                            return entry.getValue().getSetterMethod() != null;
+                            return entry.getValue().getPropertySetterMethod() != null;
                         } else {
-                            return entry.getValue().getGetterMethod() != null;
+                            return entry.getValue().getPropertyGetterMethod() != null;
                         }
                     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             return propertiesMap.values().toArray(new JListItemWrapper[0]);

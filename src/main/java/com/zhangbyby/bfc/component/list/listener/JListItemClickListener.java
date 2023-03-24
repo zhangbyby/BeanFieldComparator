@@ -33,7 +33,7 @@ public class JListItemClickListener extends MouseAdapter {
             // BuCPCompareDialogWrapper.getInstance().close(1, true);
             Navigatable navigatable;
             if (itemWrapper.isProperty()) {
-                navigatable = isTarget ? itemWrapper.getSetterMethod() : itemWrapper.getGetterMethod();
+                navigatable = isTarget ? itemWrapper.getPropertySetterMethod() : itemWrapper.getPropertyGetterMethod();
             } else {
                 navigatable = itemWrapper.getPsiField();
             }
