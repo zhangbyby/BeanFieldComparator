@@ -43,6 +43,9 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
         String sourceClassName = isApache ? classNames.get(1) : classNames.get(0);
         String targetClassName = isApache ? classNames.get(0) : classNames.get(1);
 
+        logger.info("sourceClassName: "+ sourceClassName);
+        logger.info("targetClassName: "+ targetClassName);
+
         BFCDialogWrapper.sourceClassName = sourceClassName;
         BFCDialogWrapper.targetClassName = targetClassName;
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -56,25 +59,32 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
     @Override
     public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
         PsiElement parent = element.getParent();
+        logger.info("paren class: " + parent.getClass().getSimpleName());
         if (!(parent instanceof PsiReferenceExpression)) {
             return false;
         }
         PsiElement context = parent.getContext();
+        logger.info("paren context class: " + context.getClass().getSimpleName());
         if (!(context instanceof PsiMethodCallExpression)) {
             return false;
         }
+        logger.info("paren context test: " + context.getText());
         if (!context.getText().contains("copyProperties")) {
             return false;
         }
         PsiMethod psiMethod = ((PsiMethodCallExpression) context).resolveMethod();
+        logger.info("context resolve is null: " + (psiMethod == null));
         if (psiMethod == null) {
             return false;
         }
 
         PsiClass methodClass = (PsiClass) psiMethod.getContext();
+        logger.info("method class is null: " + (methodClass == null));
         if (methodClass == null || methodClass.getQualifiedName() == null) {
             return false;
         }
+        logger.info("method class qualifiedName: " + methodClass.getQualifiedName());
+
 
         return readArgumentsQualifiedClassName((PsiMethodCallExpression) context) != null;
     }
@@ -96,6 +106,7 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
             }
             classNames.add(psiClass.getQualifiedName());
         }
+        logger.info("classNames: "+ classNames);
         return classNames;
     }
 
