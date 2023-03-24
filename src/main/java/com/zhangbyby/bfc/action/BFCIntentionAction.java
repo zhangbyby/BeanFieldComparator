@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class BFCIntentionAction extends PsiElementBaseIntentionAction {
 
-    private static final Logger logger = new LoggerFactory().getLoggerInstance(BFCIntentionAction.class.getSimpleName());
+    private static final Logger logger = new LoggerFactory().getLoggerInstance(BFCIntentionAction.class.getName());
 
     public BFCIntentionAction() {
     }
