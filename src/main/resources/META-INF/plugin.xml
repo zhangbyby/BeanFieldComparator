@@ -23,6 +23,7 @@
 3. 添加static、final字段过滤选框
 4. 自动隐藏: 只隐藏target端的final字段
 5. 在方法调用（BeanUtils.copyProperties）代码处快捷键打开窗口
+6. 支持按照Getter/Setter比较
 </pre>
     ]]></description>
 
