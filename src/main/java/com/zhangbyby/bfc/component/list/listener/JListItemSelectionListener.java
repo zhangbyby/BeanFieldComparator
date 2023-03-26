@@ -31,7 +31,7 @@ public class JListItemSelectionListener implements ListSelectionListener {
 
         other.clearSelection();
         for (int i = 0; i < other.getModel().getSize(); i++) {
-            if (other.getModel().getElementAt(i).getFieldOrProperty().equals(selectedValue.getFieldOrProperty())) {
+            if (selectedValue.nameSame(other.getModel().getElementAt(i))) {
                 other.addSelectionInterval(i, i);
                 break;
             }

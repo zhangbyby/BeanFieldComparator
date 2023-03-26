@@ -10,6 +10,4 @@ features：
 
 [Plugin Page](https://plugins.jetbrains.com/plugin/21328-bean-field-comparator)
 
-- check same name property/field type: only same type can be copy(include generic)
-
 - if current p/f type is not jdk class, and nod red, can expand as tree

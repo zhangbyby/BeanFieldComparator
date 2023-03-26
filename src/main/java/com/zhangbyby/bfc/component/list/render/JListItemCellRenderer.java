@@ -29,7 +29,7 @@ public class JListItemCellRenderer implements ListCellRenderer<JListItemWrapper>
     public Component getListCellRendererComponent(JList list, JListItemWrapper value, int index, boolean isSelected, boolean cellHasFocus) {
         JLabel container = new JLabel();
         container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
-        container.setText(value.getFieldOrProperty() + ": " + value.getFieldOrPropertySimpleClassName());
+        container.setText(value.getFopName() + ": " + value.getFopReturnType().getPresentableText());
 
         if (!value.isProperty()) {
             container.setIcon(Field);
@@ -63,7 +63,7 @@ public class JListItemCellRenderer implements ListCellRenderer<JListItemWrapper>
 
         int i = 0;
         for (; i < anotherList.getModel().getSize(); i++) {
-            if (anotherList.getModel().getElementAt(i).getFieldOrProperty().equals(value.getFieldOrProperty())) {
+            if (value.fullSame(anotherList.getModel().getElementAt(i))) {
                 break;
             }
         }
@@ -72,7 +72,7 @@ public class JListItemCellRenderer implements ListCellRenderer<JListItemWrapper>
         }
 
         if (value.isFromSuperType()) {
-            JLabel jLabel = new JLabel("↑ " + value.getFieldOrPropertyOwnerClassSimpleName());
+            JLabel jLabel = new JLabel("↑ " + value.getFopTypeOwnerType());
             jLabel.setBorder(JBUI.Borders.empty(1, (int) Math.ceil(container.getPreferredSize().getWidth() + 5), 0, 0));
             jLabel.setForeground(JBColor.GRAY);
             container.add(jLabel);

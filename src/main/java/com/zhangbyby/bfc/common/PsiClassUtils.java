@@ -38,9 +38,9 @@ public abstract class PsiClassUtils {
             Map<String, JListItemWrapper> propertiesMap = Arrays.stream(allMethods)
                     .filter(it -> !"getClass".equals(it.getName()))
                     .filter(it -> PropertyUtilBase.isSimplePropertyGetter(it) || PropertyUtilBase.isSimplePropertySetter(it))
-                    .map(it -> new JListItemWrapper(psiClass, it, PropertyUtilBase.getPropertyName(it)))
+                    .map(it -> new JListItemWrapper(psiClass, it))
                     .collect(Collectors.toMap(
-                            JListItemWrapper::getFieldOrProperty,
+                            JListItemWrapper::getFopName,
                             it -> it,
                             JListItemWrapper::mergeMethod))
                     .entrySet().stream().filter((entry) -> {

@@ -1,8 +1,11 @@
 package com.zhangbyby.bfc.component.list.item;
 
+import com.intellij.idea.LoggerFactory;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PropertyUtilBase;
 
 /**
@@ -11,47 +14,83 @@ import com.intellij.psi.util.PropertyUtilBase;
  * @author zhangbyby
  */
 public class JListItemWrapper {
+    private static final Logger logger = new LoggerFactory().getLoggerInstance(JListItemWrapper.class.getName());
+
     private final boolean isProperty;
 
-    private final String fieldOrProperty;
+    /**
+     * field or property name
+     */
+    private final String fopName;
 
+    /**
+     * if {@link JListItemWrapper#isProperty} is <b>false</b>, the psiField
+     */
     private PsiField psiField;
 
+    /**
+     * if {@link JListItemWrapper#isProperty} is <b>true</b>, the property's getter method<br/>
+     * can be null ,if the property is only writable
+     */
     private PsiMethod propertyGetterMethod;
+    /**
+     * if {@link JListItemWrapper#isProperty} is <b>true</b>, the property's setter method<br/>
+     * can be null ,if the property is only readable
+     */
     private PsiMethod propertySetterMethod;
 
-    private final String fieldOrPropertySimpleClassName;
+    /**
+     * the field or property type
+     */
+    private final PsiType fopReturnType;
+    /**
+     * the field or property type if this field/property is extends from super class
+     */
+    private final PsiClass fopTypeOwnerType;
 
+    /**
+     * if show as field, the label tool tip text<br/>
+     * the field's full ref path
+     */
     private String fieldToolTipText;
+    /**
+     * if show as property, the source label tool tip text <br/>
+     * the property's getter method full ref path
+     */
     private String propertyGetterMethodToolTipText;
+    /**
+     * if show as property, the target label tool tip text<br/>
+     * the property's setter method full ref path
+     */
     private String propertySetterMethodToolTipText;
 
-    private PsiClass selectedClass;
-    private final String selectedClassSimpleName;
-    private final String fieldOrPropertyOwnerClassSimpleName;
+    /**
+     * selected type from class chooser
+     */
+    private PsiClass classChooserSelectedType;
 
 
     public JListItemWrapper(PsiClass psiClass, PsiField psiField) {
         this.psiField = psiField;
         this.isProperty = false;
-        this.fieldOrProperty = psiField.getName();
-        this.fieldOrPropertySimpleClassName = psiField.getType().getPresentableText();
+        this.fopName = psiField.getName();
+        this.fopReturnType = psiField.getType();
 
         PsiClass ownerClass = psiField.getContainingClass();
-        this.fieldToolTipText = ownerClass.getQualifiedName() + "#" + this.fieldOrProperty;
-        this.fieldOrPropertyOwnerClassSimpleName = ownerClass.getName();
+        this.fopTypeOwnerType = ownerClass;
 
-        this.selectedClass = psiClass;
-        this.selectedClassSimpleName = psiClass.getName();
+        this.fieldToolTipText = ownerClass.getQualifiedName() + "#" + this.fopName;
+
+        this.classChooserSelectedType = psiClass;
     }
 
-    public JListItemWrapper(PsiClass psiClass, PsiMethod getterOrSetter, String name) {
+    public JListItemWrapper(PsiClass psiClass, PsiMethod getterOrSetter) {
         this.isProperty = true;
-        this.fieldOrProperty = name;
-        this.fieldOrPropertySimpleClassName = PropertyUtilBase.getPropertyType(getterOrSetter).getPresentableText();
+        this.fopName = PropertyUtilBase.getPropertyName(getterOrSetter);
+        this.fopReturnType = PropertyUtilBase.getPropertyType(getterOrSetter);
 
         PsiClass ownerClass = getterOrSetter.getContainingClass();
-        this.fieldOrPropertyOwnerClassSimpleName = ownerClass.getName();
+        this.fopTypeOwnerType = ownerClass;
         String prefix = ownerClass.getQualifiedName() + "#";
 
         if (PropertyUtilBase.isSimplePropertyGetter(getterOrSetter)) {
@@ -62,8 +101,7 @@ public class JListItemWrapper {
             this.propertySetterMethodToolTipText = prefix + getterOrSetter.getName();
         }
 
-        this.selectedClass = psiClass;
-        this.selectedClassSimpleName = psiClass.getName();
+        this.classChooserSelectedType = psiClass;
     }
 
     public JListItemWrapper mergeMethod(JListItemWrapper another) {
@@ -78,15 +116,24 @@ public class JListItemWrapper {
     }
 
     public boolean isFromSuperType() {
-        return !fieldOrPropertyOwnerClassSimpleName.equals(selectedClassSimpleName);
+        return !this.fopTypeOwnerType.getQualifiedName().equals(classChooserSelectedType.getQualifiedName());
     }
+
+    public boolean fullSame(JListItemWrapper anotherItem) {
+        return this.fopName.equals(anotherItem.getFopName()) && this.fopReturnType.getCanonicalText().equals(anotherItem.getFopReturnType().getCanonicalText());
+    }
+
+    public boolean nameSame(JListItemWrapper anotherItem) {
+        return this.fopName.equals(anotherItem.getFopName());
+    }
+
 
     public boolean isProperty() {
         return isProperty;
     }
 
-    public String getFieldOrProperty() {
-        return fieldOrProperty;
+    public String getFopName() {
+        return fopName;
     }
 
     public PsiField getPsiField() {
@@ -113,8 +160,12 @@ public class JListItemWrapper {
         this.propertySetterMethod = propertySetterMethod;
     }
 
-    public String getFieldOrPropertySimpleClassName() {
-        return fieldOrPropertySimpleClassName;
+    public PsiType getFopReturnType() {
+        return fopReturnType;
+    }
+
+    public PsiClass getFopTypeOwnerType() {
+        return fopTypeOwnerType;
     }
 
     public String getFieldToolTipText() {
@@ -141,19 +192,11 @@ public class JListItemWrapper {
         this.propertySetterMethodToolTipText = propertySetterMethodToolTipText;
     }
 
-    public PsiClass getSelectedClass() {
-        return selectedClass;
+    public PsiClass getClassChooserSelectedType() {
+        return classChooserSelectedType;
     }
 
-    public void setSelectedClass(PsiClass selectedClass) {
-        this.selectedClass = selectedClass;
-    }
-
-    public String getSelectedClassSimpleName() {
-        return selectedClassSimpleName;
-    }
-
-    public String getFieldOrPropertyOwnerClassSimpleName() {
-        return fieldOrPropertyOwnerClassSimpleName;
+    public void setClassChooserSelectedType(PsiClass classChooserSelectedType) {
+        this.classChooserSelectedType = classChooserSelectedType;
     }
 }
