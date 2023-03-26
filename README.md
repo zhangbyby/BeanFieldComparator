@@ -9,3 +9,11 @@ features：
    open the dialog
 
 [Plugin Page](https://plugins.jetbrains.com/plugin/21328-bean-field-comparator)
+
+- check same name property/field type: 
+
+- if current p/f type is not jdk class,and nod red
+
+    1. if same type,expand as tree only first level
+    2. if different type,right menu\[compare current P/F\],can compare selected p/f type or collection generic
+    3. record current session all compare history
