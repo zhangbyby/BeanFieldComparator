@@ -2,23 +2,30 @@ package com.zhangbyby.bfc.ui;
 
 import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.impl.source.PsiImmediateClassType;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.treeStructure.Tree;
+import com.zhangbyby.bfc.common.Constants;
 import com.zhangbyby.bfc.common.PsiClassUtils;
 import com.zhangbyby.bfc.component.button.ClassChooserButtonListener;
 import com.zhangbyby.bfc.component.dialog.BFCDialogWrapper;
-import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
+import com.zhangbyby.bfc.component.item.FOPItemWrapper;
 import com.zhangbyby.bfc.component.list.listener.JListItemClickListener;
 import com.zhangbyby.bfc.component.list.listener.JListItemSelectionListener;
 import com.zhangbyby.bfc.component.list.render.JListItemCellRenderer;
+import com.zhangbyby.bfc.component.tree.listener.JBTreeSelectionListener;
+import com.zhangbyby.bfc.component.tree.render.JBTreeItemCellRenderer;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-import java.util.Arrays;
-import java.util.List;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import java.util.*;
 
 /**
  * main ui
@@ -53,11 +60,17 @@ public class BFCMainUI {
     private JButton sourceClassChooseButton;
     private JTextField targetClassQualifiedName;
     private JButton targetClassChooseButton;
-    private JList<JListItemWrapper> sourceElements;
-    private JList<JListItemWrapper> targetElements;
+    private JList<FOPItemWrapper> sourceElements;
+    private JList<FOPItemWrapper> targetElements;
     private JCheckBox disPropertyGroup;
+    private Tree sourceTree;
+    private Tree targetTree;
+    private JScrollPane sourceTreePanel;
+    private JScrollPane targetTreePanel;
+    private JPanel treeMainPanel;
 
     public BFCMainUI(Project project) {
+        initConstants();
         this.project = project;
 
         Border sourceBorder = BorderFactory.createEtchedBorder();
@@ -67,6 +80,9 @@ public class BFCMainUI {
         Border targetBorder = BorderFactory.createEtchedBorder();
         Border targetTitledBorder = BorderFactory.createTitledBorder(targetBorder, "<Target>");
         targetClassElementsPanel.setBorder(targetTitledBorder);
+
+        sourceTreePanel.setBorder(sourceTitledBorder);
+        targetTreePanel.setBorder(targetTitledBorder);
 
         disPropertyGroup.addActionListener(e -> {
             if (disPropertyGroup.isSelected()) {
@@ -99,21 +115,114 @@ public class BFCMainUI {
             reloadAllItem();
         });
 
-        if (BFCDialogWrapper.sourceClassName != null) {
-            sourceClassQualifiedName.setText(BFCDialogWrapper.sourceClassName);
+        if (BFCDialogWrapper.sourcePsiType != null) {
+            sourceClassQualifiedName.setText(PsiTypesUtil.getPsiClass(BFCDialogWrapper.sourcePsiType).getQualifiedName());
         }
-        if (BFCDialogWrapper.targetClassName != null) {
-            targetClassQualifiedName.setText(BFCDialogWrapper.targetClassName);
+        if (BFCDialogWrapper.targetPsiType != null) {
+            targetClassQualifiedName.setText(PsiTypesUtil.getPsiClass(BFCDialogWrapper.targetPsiType).getQualifiedName());
         }
         reloadAllItem();
     }
 
-    private void reloadAllItem() {
-        reloadSingleItem(sourceClassQualifiedName, sourceElements, false);
-        reloadSingleItem(targetClassQualifiedName, targetElements, true);
+    private void initConstants() {
+        Constants.SOURCE_GENERICS.clear();
+        Constants.TARGET_GENERICS.clear();
     }
 
-    private void reloadSingleItem(JTextField classNameText, JList<JListItemWrapper> itemList, boolean isTarget) {
+    private void reloadAllItem() {
+        resolveSourceGenericTypes();
+        resolveTargetGenericTypes();
+
+        System.out.println(Constants.SOURCE_GENERICS);
+        System.out.println(Constants.TARGET_GENERICS);
+
+        reloadSingleList(sourceClassQualifiedName, sourceElements, false);
+        reloadSingleList(targetClassQualifiedName, targetElements, true);
+
+        reloadSingleTree(sourceClassQualifiedName, sourceTree, false);
+        reloadSingleTree(targetClassQualifiedName, targetTree, true);
+    }
+
+    private void resolveTargetGenericTypes() {
+        if (BFCDialogWrapper.sourcePsiType == null) {
+            return;
+        }
+        resolveGenerics(Constants.SOURCE_GENERICS, BFCDialogWrapper.sourcePsiType);
+    }
+
+    private void resolveSourceGenericTypes() {
+        if (BFCDialogWrapper.targetPsiType == null) {
+            return;
+        }
+        resolveGenerics(Constants.TARGET_GENERICS, BFCDialogWrapper.targetPsiType);
+    }
+
+    private void resolveGenerics(Map<String, Map<String, String>> genericMap, PsiType psiType) {
+        if (psiType.getCanonicalText().equals("java.lang.Object")) {
+            return;
+        }
+        PsiClass psiClass = PsiTypesUtil.getPsiClass(psiType);
+        if (!genericMap.containsKey(psiClass.getQualifiedName())) {
+            getGeneric:
+            if (((PsiClassType) psiType).hasParameters()) {
+                Map<String, String> generics = new HashMap<>();
+                PsiType[] actualGenericTypes;
+                PsiTypeParameter[] declareGenericNames;
+
+                if (psiType instanceof PsiClassReferenceType) {
+                    actualGenericTypes = ((PsiClassReferenceType) psiType).getParameters();
+                    declareGenericNames = ((PsiClassReferenceType) psiType).resolve().getTypeParameters();
+                } else if (psiType instanceof PsiImmediateClassType) {
+                    actualGenericTypes = ((PsiImmediateClassType) psiType).getParameters();
+                    declareGenericNames = ((PsiImmediateClassType) psiType).resolve().getTypeParameters();
+                } else {
+                    System.err.println(psiType);
+                    break getGeneric;
+                }
+
+                for (int i = 0; i < declareGenericNames.length; i++) {
+                    PsiTypeParameter declareGenericName = declareGenericNames[i];
+                    generics.put(declareGenericName.getName(),
+                            actualGenericTypes[i].getCanonicalText() + "," + actualGenericTypes[i].getPresentableText());
+                }
+                genericMap.put(psiClass.getQualifiedName(), generics);
+            } else {
+                genericMap.put(psiClass.getQualifiedName(), Collections.emptyMap());
+            }
+        }
+        PsiType[] superTypes = psiType.getSuperTypes();
+        for (PsiType superType : superTypes) {
+            resolveGenerics(genericMap, superType);
+        }
+    }
+
+    private void reloadSingleTree(JTextField classNameText, Tree itemTree, boolean isTarget) {
+        if (Strings.isNullOrEmpty(classNameText.getText())) {
+            return;
+        }
+
+        TitledBorder border = (TitledBorder) (isTarget ? targetTreePanel.getBorder() : sourceTreePanel.getBorder());
+        List<String> classNamePath = Arrays.asList(classNameText.getText().split("\\."));
+        border.setTitle(classNamePath.get(classNamePath.size() - 1));
+
+        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(classNameText.getText(), GlobalSearchScope.allScope(project));
+        if (psiClass == null) {
+            classNameText.setText("");
+            itemTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode(null), false));
+            return;
+        }
+
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode();
+        FOPItemWrapper[] wrappers = PsiClassUtils.filterElements(psiClass, this, isTarget);
+        root.setAllowsChildren(wrappers.length > 0);
+        for (FOPItemWrapper wrapper : wrappers) {
+            root.add(new DefaultMutableTreeNode(wrapper));
+        }
+        DefaultTreeModel model = new DefaultTreeModel(root, true);
+        itemTree.setModel(model);
+    }
+
+    private void reloadSingleList(JTextField classNameText, JList<FOPItemWrapper> itemList, boolean isTarget) {
         if (Strings.isNullOrEmpty(classNameText.getText())) {
             return;
         }
@@ -125,10 +234,87 @@ public class BFCMainUI {
         PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(classNameText.getText(), GlobalSearchScope.allScope(project));
         if (psiClass == null) {
             classNameText.setText("");
-            itemList.setListData(new JListItemWrapper[0]);
+            itemList.setListData(new FOPItemWrapper[0]);
             return;
         }
-        itemList.setListData(PsiClassUtils.filterElements(psiClass, this, isTarget));
+
+        FOPItemWrapper[] wrappers = PsiClassUtils.filterElements(psiClass, this, isTarget);
+        itemList.setListData(wrappers);
+
+        /*
+        0:(super level: ↑Parent)
+            getFopReturnType
+                getCanonicalText: V
+                resolve: instance of PsiTypeParameter
+            getFopTypeOwnerType
+                getQualifiedName: com.zhang.chat.common.generic.Parent   ==>   globalGenericMap<String, Map<String, String>> key
+                getTypeParameters
+                    - E     ==>     innerKey
+                    - V
+            getClassChooserSelectedType
+                getSuperTypes:
+                    - 0:
+                        resolve
+                            getQualifiedName: com.zhang.chat.common.generic.Parent
+                        hasParameters => true
+                        getParameters:
+                            - getCanonicalText => java.lang.Integer     ==>     innerValue
+                            - getCanonicalText => java.lang.String
+
+        1:(↑Parent:↑GrandPa)链表
+            getFopReturnType
+                getCanonicalText: K
+                resolve: instance of PsiTypeParameter
+            getFopTypeOwnerType
+                getQualifiedName: com.zhang.chat.common.generic.GrandPa
+                getTypeParameters
+                    - E
+                    - K
+            getClassChooserSelectedType
+                getSuperTypes[0].resolve.getSuperTypes[0].resolve.getQualifiedName: com.zhang.chat.common.generic.GrandPa
+                hasParameters => true
+                getParameters:
+                    - getCanonicalText => E ==> get from child class
+                    - getCanonicalText => java.lang.Long
+
+         2.
+            getFopReturnType:
+                getCanonicalText: java.util.List<E>
+                resolve: instance of PsiClass
+                hasParameters => true
+                getParameters:
+                    - E
+            getFopTypeOwnerType
+                getQualifiedName: com.zhang.chat.common.generic.GrandPa
+                skip
+
+         */
+
+        // test
+//        {
+//            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode();
+//            treeNode.setAllowsChildren(true);
+//            DefaultTreeModel treeModel = new DefaultTreeModel(treeNode, true);
+//            for (JListItemWrapper wrapper : wrappers) {
+//                DefaultMutableTreeNode child = new DefaultMutableTreeNode(wrapper);
+//                PsiType fopReturnType = wrapper.getFopReturnType();
+//                if (!fopReturnType.getCanonicalText().startsWith("java.")) {
+//                    PsiClass fieldClass = JavaPsiFacade.getInstance(project).findClass(fopReturnType.getCanonicalText(), GlobalSearchScope.allScope(project));
+//                    if (fieldClass != null) {
+//                        child.setAllowsChildren(true);
+//                        JListItemWrapper[] childWrappers = PsiClassUtils.filterElements(fieldClass, this, isTarget);
+//                        for (JListItemWrapper childWrapper : childWrappers) {
+//                            DefaultMutableTreeNode c2 = new DefaultMutableTreeNode(childWrapper);
+//                            c2.setAllowsChildren(false);
+//                            child.add(c2);
+//                        }
+//                    }
+//                } else {
+//                    child.setAllowsChildren(false);
+//                }
+//                treeNode.add(child);
+//            }
+//        }
     }
 
     private void createUIComponents() {
@@ -152,6 +338,16 @@ public class BFCMainUI {
         targetElements.setCellRenderer(new JListItemCellRenderer(sourceElements, true));
         targetElements.addMouseListener(new JListItemClickListener(targetElements, true));
         targetElements.addListSelectionListener(new JListItemSelectionListener(targetElements, sourceElements));
+
+        sourceTree = new Tree();
+        sourceTree.setRootVisible(false);
+        sourceTree.setCellRenderer(new JBTreeItemCellRenderer(targetTree, false));
+        sourceTree.addTreeSelectionListener(new JBTreeSelectionListener(sourceTree, targetTree));
+
+        targetTree = new Tree();
+        targetTree.setRootVisible(false);
+        targetTree.setCellRenderer(new JBTreeItemCellRenderer(sourceTree, true));
+        targetTree.addTreeSelectionListener(new JBTreeSelectionListener(targetTree, sourceTree));
 
         sourceClassChooseButton.addActionListener(
                 new ClassChooserButtonListener(this, "SourceClass", sourceClassQualifiedName, sourceElements, targetElements, false));

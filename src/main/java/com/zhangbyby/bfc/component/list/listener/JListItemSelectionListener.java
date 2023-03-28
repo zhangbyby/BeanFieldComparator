@@ -1,6 +1,6 @@
 package com.zhangbyby.bfc.component.list.listener;
 
-import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
+import com.zhangbyby.bfc.component.item.FOPItemWrapper;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -13,10 +13,10 @@ import javax.swing.event.ListSelectionListener;
  */
 public class JListItemSelectionListener implements ListSelectionListener {
 
-    private final JList<JListItemWrapper> self;
-    private final JList<JListItemWrapper> other;
+    private final JList<FOPItemWrapper> self;
+    private final JList<FOPItemWrapper> other;
 
-    public JListItemSelectionListener(JList<JListItemWrapper> self, JList<JListItemWrapper> other) {
+    public JListItemSelectionListener(JList<FOPItemWrapper> self, JList<FOPItemWrapper> other) {
         this.self = self;
         this.other = other;
     }
@@ -27,7 +27,7 @@ public class JListItemSelectionListener implements ListSelectionListener {
             return;
         }
 
-        JListItemWrapper selectedValue = self.getSelectedValue();
+        FOPItemWrapper selectedValue = self.getSelectedValue();
 
         other.clearSelection();
         for (int i = 0; i < other.getModel().getSize(); i++) {

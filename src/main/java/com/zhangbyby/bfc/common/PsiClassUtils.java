@@ -2,7 +2,7 @@ package com.zhangbyby.bfc.common;
 
 import com.intellij.psi.*;
 import com.intellij.psi.util.PropertyUtilBase;
-import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
+import com.zhangbyby.bfc.component.item.FOPItemWrapper;
 import com.zhangbyby.bfc.ui.BFCMainUI;
 
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class PsiClassUtils {
-    public static JListItemWrapper[] filterElements(PsiClass psiClass, BFCMainUI mainUI, boolean isTarget) {
+    public static FOPItemWrapper[] filterElements(PsiClass psiClass, BFCMainUI mainUI, boolean isTarget) {
         if (mainUI.getDisPropertyGroup().isSelected()) {
             // get all fields
             PsiField[] allFields = psiClass.getAllFields();
@@ -29,20 +29,20 @@ public abstract class PsiClassUtils {
                     return false;
                 }
                 return true;
-            }).map(it -> new JListItemWrapper(psiClass, it)).toArray(JListItemWrapper[]::new);
+            }).map(it -> new FOPItemWrapper(psiClass, it, isTarget)).toArray(FOPItemWrapper[]::new);
         } else {
             // get all methods
             PsiMethod[] allMethods = psiClass.getAllMethods();
 
             // getPropertyName
-            Map<String, JListItemWrapper> propertiesMap = Arrays.stream(allMethods)
+            Map<String, FOPItemWrapper> propertiesMap = Arrays.stream(allMethods)
                     .filter(it -> !"getClass".equals(it.getName()))
                     .filter(it -> PropertyUtilBase.isSimplePropertyGetter(it) || PropertyUtilBase.isSimplePropertySetter(it))
-                    .map(it -> new JListItemWrapper(psiClass, it))
+                    .map(it -> new FOPItemWrapper(psiClass, it, isTarget))
                     .collect(Collectors.toMap(
-                            JListItemWrapper::getFopName,
+                            FOPItemWrapper::getFopName,
                             it -> it,
-                            JListItemWrapper::mergeMethod))
+                            FOPItemWrapper::mergeMethod))
                     .entrySet().stream().filter((entry) -> {
                         if (isTarget) {
                             return entry.getValue().getPropertySetterMethod() != null;
@@ -50,7 +50,7 @@ public abstract class PsiClassUtils {
                             return entry.getValue().getPropertyGetterMethod() != null;
                         }
                     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            return propertiesMap.values().toArray(new JListItemWrapper[0]);
+            return propertiesMap.values().toArray(new FOPItemWrapper[0]);
         }
     }
 }

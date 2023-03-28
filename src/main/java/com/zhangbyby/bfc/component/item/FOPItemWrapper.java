@@ -1,20 +1,22 @@
-package com.zhangbyby.bfc.component.list.item;
+package com.zhangbyby.bfc.component.item;
 
 import com.intellij.idea.LoggerFactory;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PropertyUtilBase;
+import com.zhangbyby.bfc.common.Constants;
+
+import java.util.Map;
+
 
 /**
  * JList item wrapper for show field or property
  *
  * @author zhangbyby
  */
-public class JListItemWrapper {
-    private static final Logger logger = new LoggerFactory().getLoggerInstance(JListItemWrapper.class.getName());
+public class FOPItemWrapper {
+    private static final Logger logger = new LoggerFactory().getLoggerInstance(FOPItemWrapper.class.getName());
 
     private final boolean isProperty;
 
@@ -24,17 +26,17 @@ public class JListItemWrapper {
     private final String fopName;
 
     /**
-     * if {@link JListItemWrapper#isProperty} is <b>false</b>, the psiField
+     * if {@link FOPItemWrapper#isProperty} is <b>false</b>, the psiField
      */
     private PsiField psiField;
 
     /**
-     * if {@link JListItemWrapper#isProperty} is <b>true</b>, the property's getter method<br/>
+     * if {@link FOPItemWrapper#isProperty} is <b>true</b>, the property's getter method<br/>
      * can be null ,if the property is only writable
      */
     private PsiMethod propertyGetterMethod;
     /**
-     * if {@link JListItemWrapper#isProperty} is <b>true</b>, the property's setter method<br/>
+     * if {@link FOPItemWrapper#isProperty} is <b>true</b>, the property's setter method<br/>
      * can be null ,if the property is only readable
      */
     private PsiMethod propertySetterMethod;
@@ -42,11 +44,11 @@ public class JListItemWrapper {
     /**
      * the field or property type
      */
-    private final PsiType fopReturnType;
+    private final PsiType fopType;
     /**
-     * the field or property type if this field/property is extends from super class
+     * the field or property declared class
      */
-    private final PsiClass fopTypeOwnerType;
+    private final PsiClass fopDeclareClass;
 
     /**
      * if show as field, the label tool tip text<br/>
@@ -67,31 +69,29 @@ public class JListItemWrapper {
     /**
      * selected type from class chooser
      */
-    private PsiClass classChooserSelectedType;
+    private PsiClass classChooserSelectedClass;
 
+    private final boolean isTarget;
 
-    public JListItemWrapper(PsiClass psiClass, PsiField psiField) {
+    public FOPItemWrapper(PsiClass psiClass, PsiField psiField, boolean isTarget) {
         this.psiField = psiField;
         this.isProperty = false;
         this.fopName = psiField.getName();
-        this.fopReturnType = psiField.getType();
+        this.fopType = psiField.getType();
 
-        PsiClass ownerClass = psiField.getContainingClass();
-        this.fopTypeOwnerType = ownerClass;
-
-        this.fieldToolTipText = ownerClass.getQualifiedName() + "#" + this.fopName;
-
-        this.classChooserSelectedType = psiClass;
+        this.fopDeclareClass = psiField.getContainingClass();
+        this.fieldToolTipText = fopDeclareClass.getQualifiedName() + "#" + this.fopName;
+        this.classChooserSelectedClass = psiClass;
+        this.isTarget = isTarget;
     }
 
-    public JListItemWrapper(PsiClass psiClass, PsiMethod getterOrSetter) {
+    public FOPItemWrapper(PsiClass psiClass, PsiMethod getterOrSetter, boolean isTarget) {
         this.isProperty = true;
         this.fopName = PropertyUtilBase.getPropertyName(getterOrSetter);
-        this.fopReturnType = PropertyUtilBase.getPropertyType(getterOrSetter);
+        this.fopType = PropertyUtilBase.getPropertyType(getterOrSetter);
 
-        PsiClass ownerClass = getterOrSetter.getContainingClass();
-        this.fopTypeOwnerType = ownerClass;
-        String prefix = ownerClass.getQualifiedName() + "#";
+        this.fopDeclareClass = getterOrSetter.getContainingClass();
+        String prefix = fopDeclareClass.getQualifiedName() + "#";
 
         if (PropertyUtilBase.isSimplePropertyGetter(getterOrSetter)) {
             this.propertyGetterMethod = getterOrSetter;
@@ -100,11 +100,12 @@ public class JListItemWrapper {
             this.propertySetterMethod = getterOrSetter;
             this.propertySetterMethodToolTipText = prefix + getterOrSetter.getName();
         }
+        this.isTarget = isTarget;
 
-        this.classChooserSelectedType = psiClass;
+        this.classChooserSelectedClass = psiClass;
     }
 
-    public JListItemWrapper mergeMethod(JListItemWrapper another) {
+    public FOPItemWrapper mergeMethod(FOPItemWrapper another) {
         if (this.propertyGetterMethod == null) {
             this.propertyGetterMethod = another.propertyGetterMethod;
             this.propertyGetterMethodToolTipText = this.propertyGetterMethod.getContainingClass().getQualifiedName() + "#" + this.propertyGetterMethod.getName();
@@ -116,17 +117,39 @@ public class JListItemWrapper {
     }
 
     public boolean isFromSuperType() {
-        return !this.fopTypeOwnerType.getQualifiedName().equals(classChooserSelectedType.getQualifiedName());
+        return !this.fopDeclareClass.getQualifiedName().equals(classChooserSelectedClass.getQualifiedName());
     }
 
-    public boolean fullSame(JListItemWrapper anotherItem) {
-        return this.fopName.equals(anotherItem.getFopName()) && this.fopReturnType.getCanonicalText().equals(anotherItem.getFopReturnType().getCanonicalText());
+    public boolean fullSame(FOPItemWrapper anotherItem) {
+        return this.fopName.equals(anotherItem.getFopName()) && this.actualTypeName().equals(anotherItem.actualTypeName());
     }
 
-    public boolean nameSame(JListItemWrapper anotherItem) {
+    public boolean nameSame(FOPItemWrapper anotherItem) {
         return this.fopName.equals(anotherItem.getFopName());
     }
 
+    public String actualTypeName() {
+        PsiClass resolve = ((PsiClassReferenceType) fopType).resolve();
+        String name = fopType.getPresentableText();
+        if (resolve instanceof PsiTypeParameter) {
+            return isTarget ?
+                    Constants.TARGET_GENERICS.get(fopDeclareClass.getQualifiedName()).get(name).split(",")[1]
+                    : Constants.SOURCE_GENERICS.get(fopDeclareClass.getQualifiedName()).get(name).split(",")[1];
+        }
+        if (((PsiClassReferenceType) fopType).hasParameters()) {
+            Map<String, String> generics = isTarget ?
+                    Constants.TARGET_GENERICS.get(fopDeclareClass.getQualifiedName())
+                    : Constants.SOURCE_GENERICS.get(fopDeclareClass.getQualifiedName());
+            for (Map.Entry<String, String> entry : generics.entrySet()) {
+                String genericName = entry.getKey();
+                String simpleTypeParameterClassName = entry.getValue().split(",")[1];
+                name = name.replace("<" + genericName + ",", "<" + simpleTypeParameterClassName + ",")
+                        .replace(" " + genericName + ",", " " + simpleTypeParameterClassName + ",")
+                        .replace(" " + genericName + ">", " " + simpleTypeParameterClassName + ">");
+            }
+        }
+        return name;
+    }
 
     public boolean isProperty() {
         return isProperty;
@@ -160,12 +183,12 @@ public class JListItemWrapper {
         this.propertySetterMethod = propertySetterMethod;
     }
 
-    public PsiType getFopReturnType() {
-        return fopReturnType;
+    public PsiType getFopType() {
+        return fopType;
     }
 
-    public PsiClass getFopTypeOwnerType() {
-        return fopTypeOwnerType;
+    public PsiClass getFopDeclareClass() {
+        return fopDeclareClass;
     }
 
     public String getFieldToolTipText() {
@@ -192,11 +215,11 @@ public class JListItemWrapper {
         this.propertySetterMethodToolTipText = propertySetterMethodToolTipText;
     }
 
-    public PsiClass getClassChooserSelectedType() {
-        return classChooserSelectedType;
+    public PsiClass getClassChooserSelectedClass() {
+        return classChooserSelectedClass;
     }
 
-    public void setClassChooserSelectedType(PsiClass classChooserSelectedType) {
-        this.classChooserSelectedType = classChooserSelectedType;
+    public void setClassChooserSelectedClass(PsiClass classChooserSelectedClass) {
+        this.classChooserSelectedClass = classChooserSelectedClass;
     }
 }

@@ -38,17 +38,17 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
         // other: source, target
         boolean isApache = methodClass.getQualifiedName().startsWith("org.apache.commons.beanutils");
 
-        List<String> classNames = readArgumentsQualifiedClassName((PsiMethodCallExpression) context);
-        String sourceClassName = isApache ? classNames.get(1) : classNames.get(0);
-        String targetClassName = isApache ? classNames.get(0) : classNames.get(1);
+        List<PsiType> psiTypes = readArgumentsQualifiedClassName((PsiMethodCallExpression) context);
+        PsiType sourcePsiType= isApache ? psiTypes.get(1) : psiTypes.get(0);
+        PsiType targetPsiType = isApache ? psiTypes.get(0) : psiTypes.get(1);
 
-        BFCDialogWrapper.sourceClassName = sourceClassName;
-        BFCDialogWrapper.targetClassName = targetClassName;
+        BFCDialogWrapper.sourcePsiType = sourcePsiType;
+        BFCDialogWrapper.targetPsiType = targetPsiType;
         ApplicationManager.getApplication().invokeLater(() -> {
             BFCDialogWrapper dialogWrapper = new BFCDialogWrapper(element.getProject());
             dialogWrapper.showAndGet();
-            BFCDialogWrapper.sourceClassName = null;
-            BFCDialogWrapper.targetClassName = null;
+            BFCDialogWrapper.sourcePsiType = null;
+            BFCDialogWrapper.targetPsiType = null;
         });
     }
 
@@ -78,9 +78,9 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
         return readArgumentsQualifiedClassName((PsiMethodCallExpression) context) != null;
     }
 
-    private List<String> readArgumentsQualifiedClassName(PsiMethodCallExpression context) {
+    private List<PsiType> readArgumentsQualifiedClassName(PsiMethodCallExpression context) {
         PsiExpression[] expressions = context.getArgumentList().getExpressions();
-        List<String> classNames = new ArrayList<>();
+        List<PsiType> psiTypes = new ArrayList<>();
         for (PsiExpression expression : expressions) {
             if (!((expression.getType()) instanceof PsiClassType.Stub)) {
                 return null;
@@ -93,9 +93,9 @@ public class BFCIntentionAction extends PsiElementBaseIntentionAction {
             if (psiClass.getQualifiedName() == null) {
                 return null;
             }
-            classNames.add(psiClass.getQualifiedName());
+            psiTypes.add(type);
         }
-        return classNames.isEmpty() ? null : classNames;
+        return psiTypes.isEmpty() ? null : psiTypes;
     }
 
     @Override

@@ -4,7 +4,7 @@ import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
+import com.zhangbyby.bfc.component.item.FOPItemWrapper;
 import com.zhangbyby.bfc.ui.BFCMainUI;
 import com.zhangbyby.bfc.common.PsiClassUtils;
 
@@ -21,11 +21,11 @@ public class ClassChooserButtonListener implements ActionListener {
     private final BFCMainUI mainUI;
     private final String title;
     private final JTextField classPathText;
-    private final JList<JListItemWrapper> fieldList;
-    private final JList<JListItemWrapper> anotherList;
+    private final JList<FOPItemWrapper> fieldList;
+    private final JList<FOPItemWrapper> anotherList;
     private final boolean isTarget;
 
-    public ClassChooserButtonListener(BFCMainUI mainUI, String title, JTextField classPathText, JList<JListItemWrapper> fieldList, JList<JListItemWrapper> anotherList, boolean isTarget) {
+    public ClassChooserButtonListener(BFCMainUI mainUI, String title, JTextField classPathText, JList<FOPItemWrapper> fieldList, JList<FOPItemWrapper> anotherList, boolean isTarget) {
         this.mainUI = mainUI;
         this.title = title;
         this.classPathText = classPathText;

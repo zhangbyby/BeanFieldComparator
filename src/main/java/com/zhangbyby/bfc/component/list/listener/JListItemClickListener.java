@@ -2,7 +2,7 @@ package com.zhangbyby.bfc.component.list.listener;
 
 import com.intellij.pom.Navigatable;
 import com.intellij.util.OpenSourceUtil;
-import com.zhangbyby.bfc.component.list.item.JListItemWrapper;
+import com.zhangbyby.bfc.component.item.FOPItemWrapper;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -15,10 +15,10 @@ import java.awt.event.MouseEvent;
  */
 public class JListItemClickListener extends MouseAdapter {
     public static final int DOUBLE_CLICK_COUNT = 2;
-    private final JList<JListItemWrapper> selfList;
+    private final JList<FOPItemWrapper> selfList;
     private final boolean isTarget;
 
-    public JListItemClickListener(JList<JListItemWrapper> list, boolean isTarget) {
+    public JListItemClickListener(JList<FOPItemWrapper> list, boolean isTarget) {
         this.selfList = list;
         this.isTarget = isTarget;
     }
@@ -27,7 +27,7 @@ public class JListItemClickListener extends MouseAdapter {
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() >= DOUBLE_CLICK_COUNT) {
             int index = selfList.locationToIndex(e.getPoint());
-            JListItemWrapper itemWrapper = selfList.getModel().getElementAt(index);
+            FOPItemWrapper itemWrapper = selfList.getModel().getElementAt(index);
 
             // close dialog
             // BuCPCompareDialogWrapper.getInstance().close(1, true);
