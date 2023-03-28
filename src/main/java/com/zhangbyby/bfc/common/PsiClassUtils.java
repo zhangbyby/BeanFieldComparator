@@ -29,7 +29,7 @@ public abstract class PsiClassUtils {
                     return false;
                 }
                 return true;
-            }).map(it -> new FOPItemWrapper(psiClass, it, isTarget)).toArray(FOPItemWrapper[]::new);
+            }).map(it -> new FOPItemWrapper(mainUI.getProject(), psiClass, it, isTarget)).toArray(FOPItemWrapper[]::new);
         } else {
             // get all methods
             PsiMethod[] allMethods = psiClass.getAllMethods();
@@ -38,7 +38,7 @@ public abstract class PsiClassUtils {
             Map<String, FOPItemWrapper> propertiesMap = Arrays.stream(allMethods)
                     .filter(it -> !"getClass".equals(it.getName()))
                     .filter(it -> PropertyUtilBase.isSimplePropertyGetter(it) || PropertyUtilBase.isSimplePropertySetter(it))
-                    .map(it -> new FOPItemWrapper(psiClass, it, isTarget))
+                    .map(it -> new FOPItemWrapper(mainUI.getProject(), psiClass, it, isTarget))
                     .collect(Collectors.toMap(
                             FOPItemWrapper::getFopName,
                             it -> it,

@@ -2,9 +2,12 @@ package com.zhangbyby.bfc.component.item;
 
 import com.intellij.idea.LoggerFactory;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PropertyUtilBase;
+import com.intellij.psi.util.PsiTypesUtil;
 import com.zhangbyby.bfc.common.Constants;
 
 import java.util.Map;
@@ -72,8 +75,14 @@ public class FOPItemWrapper {
     private PsiClass classChooserSelectedClass;
 
     private final boolean isTarget;
+    private String castTargetTypeSimpleName;
 
-    public FOPItemWrapper(PsiClass psiClass, PsiField psiField, boolean isTarget) {
+    private final Project project;
+
+    private final String actualTypeName;
+
+    public FOPItemWrapper(Project project, PsiClass psiClass, PsiField psiField, boolean isTarget) {
+        this.project = project;
         this.psiField = psiField;
         this.isProperty = false;
         this.fopName = psiField.getName();
@@ -83,9 +92,12 @@ public class FOPItemWrapper {
         this.fieldToolTipText = fopDeclareClass.getQualifiedName() + "#" + this.fopName;
         this.classChooserSelectedClass = psiClass;
         this.isTarget = isTarget;
+
+        this.actualTypeName = actualTypeName();
     }
 
-    public FOPItemWrapper(PsiClass psiClass, PsiMethod getterOrSetter, boolean isTarget) {
+    public FOPItemWrapper(Project project, PsiClass psiClass, PsiMethod getterOrSetter, boolean isTarget) {
+        this.project = project;
         this.isProperty = true;
         this.fopName = PropertyUtilBase.getPropertyName(getterOrSetter);
         this.fopType = PropertyUtilBase.getPropertyType(getterOrSetter);
@@ -103,6 +115,8 @@ public class FOPItemWrapper {
         this.isTarget = isTarget;
 
         this.classChooserSelectedClass = psiClass;
+
+        this.actualTypeName = actualTypeName();
     }
 
     public FOPItemWrapper mergeMethod(FOPItemWrapper another) {
@@ -121,11 +135,47 @@ public class FOPItemWrapper {
     }
 
     public boolean fullSame(FOPItemWrapper anotherItem) {
-        return this.fopName.equals(anotherItem.getFopName()) && this.actualTypeName().equals(anotherItem.actualTypeName());
+        if (!this.fopName.equals(anotherItem.getFopName())) {
+            return false;
+        }
+
+        boolean canCast = false;
+
+        if (actualTypeClass() != null && anotherItem.actualTypeClass() != null) {
+            if (isTarget) {
+                canCast = actualTypeClass().isAssignableFrom(anotherItem.actualTypeClass());
+            } else {
+                canCast = anotherItem.actualTypeClass().isAssignableFrom(actualTypeClass());
+            }
+            if (canCast && isTarget) {
+                this.castTargetTypeSimpleName = anotherItem.getActualTypeName();
+            } else if (canCast) {
+                anotherItem.castTargetTypeSimpleName = getActualTypeName();
+            }
+        }
+
+        return this.actualTypeName.equals(anotherItem.actualTypeName)
+                || canCast;
     }
 
     public boolean nameSame(FOPItemWrapper anotherItem) {
         return this.fopName.equals(anotherItem.getFopName());
+    }
+
+    private PsiType actualTypeClass() {
+        PsiClass fopActualClass = ((PsiClassReferenceType) fopType).resolve();
+        String name = fopType.getPresentableText();
+        if (fopActualClass instanceof PsiTypeParameter) {
+            String fullClassName = isTarget ?
+                    Constants.TARGET_GENERICS.get(fopDeclareClass.getQualifiedName()).get(name).split(",")[0]
+                    : Constants.SOURCE_GENERICS.get(fopDeclareClass.getQualifiedName()).get(name).split(",")[0];
+            return
+                    PsiTypesUtil.getClassType(JavaPsiFacade
+                            .getInstance(project)
+                            .findClass(fullClassName, GlobalSearchScope.allScope(project))
+                    );
+        }
+        return fopType;
     }
 
     public String actualTypeName() {
@@ -145,7 +195,8 @@ public class FOPItemWrapper {
                 String simpleTypeParameterClassName = entry.getValue().split(",")[1];
                 name = name.replace("<" + genericName + ",", "<" + simpleTypeParameterClassName + ",")
                         .replace(" " + genericName + ",", " " + simpleTypeParameterClassName + ",")
-                        .replace(" " + genericName + ">", " " + simpleTypeParameterClassName + ">");
+                        .replace(" " + genericName + ">", " " + simpleTypeParameterClassName + ">")
+                        .replace("<" + genericName + ">", "<" + simpleTypeParameterClassName + ">");
             }
         }
         return name;
@@ -221,5 +272,25 @@ public class FOPItemWrapper {
 
     public void setClassChooserSelectedClass(PsiClass classChooserSelectedClass) {
         this.classChooserSelectedClass = classChooserSelectedClass;
+    }
+
+    public boolean isTarget() {
+        return isTarget;
+    }
+
+    public String getCastTargetTypeSimpleName() {
+        return castTargetTypeSimpleName;
+    }
+
+    public void setCastTargetTypeSimpleName(String castTargetTypeSimpleName) {
+        this.castTargetTypeSimpleName = castTargetTypeSimpleName;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public String getActualTypeName() {
+        return actualTypeName;
     }
 }

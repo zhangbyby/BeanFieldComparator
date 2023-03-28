@@ -29,7 +29,6 @@ public class JListItemCellRenderer implements ListCellRenderer<FOPItemWrapper> {
     public Component getListCellRendererComponent(JList list, FOPItemWrapper value, int index, boolean isSelected, boolean cellHasFocus) {
         JLabel container = new JLabel();
         container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
-        container.setText(value.getFopName() + ": " + value.actualTypeName());
 
         if (!value.isProperty()) {
             container.setIcon(Field);
@@ -69,6 +68,13 @@ public class JListItemCellRenderer implements ListCellRenderer<FOPItemWrapper> {
         }
         if (i == anotherList.getModel().getSize()) {
             container.setForeground(JBColor.RED);
+            container.setText(value.getFopName() + ": " + value.getActualTypeName());
+        } else {
+            if (value.getCastTargetTypeSimpleName() != null) {
+                container.setText(value.getFopName() + ": (" + value.getCastTargetTypeSimpleName() + ") " + value.getActualTypeName());
+            } else {
+                container.setText(value.getFopName() + ": " + value.getActualTypeName());
+            }
         }
 
         if (value.isFromSuperType()) {

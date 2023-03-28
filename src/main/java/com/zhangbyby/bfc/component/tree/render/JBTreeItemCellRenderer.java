@@ -34,7 +34,7 @@ public class JBTreeItemCellRenderer implements TreeCellRenderer {
 
         JLabel container = new JLabel();
         container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
-        container.setText(value.getFopName() + ": " + value.actualTypeName());
+        container.setText(value.getFopName() + ": " + value.getActualTypeName());
 
         if (!value.isProperty()) {
             container.setIcon(Field);
