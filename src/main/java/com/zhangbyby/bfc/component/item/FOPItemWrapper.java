@@ -293,4 +293,25 @@ public class FOPItemWrapper {
     public String getActualTypeName() {
         return actualTypeName;
     }
+
+    @Override
+    public String toString() {
+        return "FOPItemWrapper{" +
+                "isProperty=" + isProperty +
+                ", fopName='" + fopName + '\'' +
+                ", psiField=" + psiField +
+                ", propertyGetterMethod=" + propertyGetterMethod +
+                ", propertySetterMethod=" + propertySetterMethod +
+                ", fopType=" + fopType +
+                ", fopDeclareClass=" + fopDeclareClass +
+                ", fieldToolTipText='" + fieldToolTipText + '\'' +
+                ", propertyGetterMethodToolTipText='" + propertyGetterMethodToolTipText + '\'' +
+                ", propertySetterMethodToolTipText='" + propertySetterMethodToolTipText + '\'' +
+                ", classChooserSelectedClass=" + classChooserSelectedClass +
+                ", isTarget=" + isTarget +
+                ", castTargetTypeSimpleName='" + castTargetTypeSimpleName + '\'' +
+                ", project=" + project +
+                ", actualTypeName='" + actualTypeName + '\'' +
+                '}';
+    }
 }

@@ -1,15 +1,20 @@
 package com.zhangbyby.bfc.common;
 
+import com.intellij.idea.LoggerFactory;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PropertyUtilBase;
 import com.zhangbyby.bfc.component.item.FOPItemWrapper;
 import com.zhangbyby.bfc.ui.BFCMainUI;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class PsiClassUtils {
+    private static final Logger logger = new LoggerFactory().getLoggerInstance(PsiClassUtils.class.getName());
+
     public static FOPItemWrapper[] filterElements(PsiClass psiClass, BFCMainUI mainUI, boolean isTarget) {
         if (mainUI.getDisPropertyGroup().isSelected()) {
             // get all fields
@@ -35,10 +40,14 @@ public abstract class PsiClassUtils {
             PsiMethod[] allMethods = psiClass.getAllMethods();
 
             // getPropertyName
-            Map<String, FOPItemWrapper> propertiesMap = Arrays.stream(allMethods)
+            List<FOPItemWrapper> fopItemWrappers = Arrays.stream(allMethods)
                     .filter(it -> !"getClass".equals(it.getName()))
                     .filter(it -> PropertyUtilBase.isSimplePropertyGetter(it) || PropertyUtilBase.isSimplePropertySetter(it))
                     .map(it -> new FOPItemWrapper(mainUI.getProject(), psiClass, it, isTarget))
+                    .collect(Collectors.toList());
+            logger.info("fopItemWrappers: \n" + fopItemWrappers);
+
+            Map<String, FOPItemWrapper> propertiesMap = fopItemWrappers.stream()
                     .collect(Collectors.toMap(
                             FOPItemWrapper::getFopName,
                             it -> it,
