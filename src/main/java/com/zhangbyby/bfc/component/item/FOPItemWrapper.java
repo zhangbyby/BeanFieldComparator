@@ -124,7 +124,7 @@ public class FOPItemWrapper {
             this.propertyGetterMethod = another.propertyGetterMethod;
             this.propertyGetterMethodToolTipText = this.propertyGetterMethod.getContainingClass().getQualifiedName() + "#" + this.propertyGetterMethod.getName();
         }
-        if (this.propertySetterMethod == null && another.propertySetterMethod != null){
+        if (this.propertySetterMethod == null && another.propertySetterMethod != null) {
             this.propertySetterMethod = another.propertySetterMethod;
             this.propertySetterMethodToolTipText = this.propertySetterMethod.getContainingClass().getQualifiedName() + "#" + this.propertySetterMethod.getName();
         }
@@ -148,9 +148,12 @@ public class FOPItemWrapper {
             } else {
                 canCast = anotherItem.actualTypeClass().isAssignableFrom(actualTypeClass());
             }
-            if (canCast && isTarget) {
+            boolean casted = canCast
+                    && !actualTypeClass().getCanonicalText().equals(anotherItem.actualTypeClass().getCanonicalText());
+
+            if (casted && isTarget) {
                 this.castTargetTypeSimpleName = anotherItem.getActualTypeName();
-            } else if (canCast) {
+            } else if (casted) {
                 anotherItem.castTargetTypeSimpleName = getActualTypeName();
             }
         }
