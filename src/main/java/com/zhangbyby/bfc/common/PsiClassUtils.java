@@ -45,7 +45,6 @@ public abstract class PsiClassUtils {
                     .filter(it -> PropertyUtilBase.isSimplePropertyGetter(it) || PropertyUtilBase.isSimplePropertySetter(it))
                     .map(it -> new FOPItemWrapper(mainUI.getProject(), psiClass, it, isTarget))
                     .collect(Collectors.toList());
-            logger.info("fopItemWrappers: \n" + fopItemWrappers);
 
             Map<String, FOPItemWrapper> propertiesMap = fopItemWrappers.stream()
                     .collect(Collectors.toMap(

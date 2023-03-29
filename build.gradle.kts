@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.zhangbyby"
-version = "0.6.0-fix"
+version = "0.6.1"
 
 repositories {
     mavenCentral()
