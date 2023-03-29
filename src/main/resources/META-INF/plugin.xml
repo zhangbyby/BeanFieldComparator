@@ -21,7 +21,7 @@ features：
 1. select and linkage
 2. double-click to navigate to source code
 3. filter static or final fields or auto filtered
-4. at source code BeanUtils.copyProperties(spring+apache) line use the alt+enter shortcut key and then select BFC to open the dialog
+4. at source code BeanUtils.copyProperties(spring+apache(just reverse order)) method use the alt+enter shortcut key and then select BFC to open the dialog
 </pre>
     ]]></description>
 
