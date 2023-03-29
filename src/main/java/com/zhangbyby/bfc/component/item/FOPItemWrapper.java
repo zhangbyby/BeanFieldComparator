@@ -120,10 +120,11 @@ public class FOPItemWrapper {
     }
 
     public FOPItemWrapper mergeMethod(FOPItemWrapper another) {
-        if (this.propertyGetterMethod == null) {
+        if (this.propertyGetterMethod == null && another.propertyGetterMethod != null) {
             this.propertyGetterMethod = another.propertyGetterMethod;
             this.propertyGetterMethodToolTipText = this.propertyGetterMethod.getContainingClass().getQualifiedName() + "#" + this.propertyGetterMethod.getName();
-        } else {
+        }
+        if (this.propertySetterMethod == null && another.propertySetterMethod != null){
             this.propertySetterMethod = another.propertySetterMethod;
             this.propertySetterMethodToolTipText = this.propertySetterMethod.getContainingClass().getQualifiedName() + "#" + this.propertySetterMethod.getName();
         }
